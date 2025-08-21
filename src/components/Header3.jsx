@@ -98,10 +98,10 @@ export default function Header({ onSearch }) {
       <motion.header
         className={clsx(
           "fixed top-0 p-2 md:p-0 left-0 right-0  z-50 transition-all duration-300 ",
-          "backdrop-blur-md border-b border-white/[0.02]",
+          " border-b border-white/[0.02]",
           pathname === "/"
             ? isScrolled
-              ? "bg-white/[0.02] text-black"
+              ? "bg-white/[0.02] text-black backdrop-blur-md"
               : "bg-white/[0.02] text-white"
             : ""
         )}
@@ -123,7 +123,7 @@ export default function Header({ onSearch }) {
               </Link>
             </motion.div>
             <nav className="hidden md:flex space-x-6 w-[40%] justify-center relative ">
-              <Link to="/" className="text-sm font-medium hover:text-rose-600">
+              <Link to="/" className="text-sm font-medium hover:opacity-50">
                 Home
               </Link>
 
@@ -131,7 +131,7 @@ export default function Header({ onSearch }) {
               <div className="relative">
                 <button
                   onClick={() => setExpandedCategoryId((prev) => (prev === "all" ? null : "all"))}
-                  className="text-sm font-medium cursor-pointer hover:text-rose-600 flex items-center space-x-1">
+                  className="text-sm font-medium cursor-pointer hover:opacity-50 flex items-center space-x-1">
                   Categories
                   <ChevronDown
                     size={14}
@@ -181,7 +181,7 @@ export default function Header({ onSearch }) {
               <Link
                 to="/about"
                 className={clsx(
-                  "text-sm font-medium hover:text-rose-600",
+                  "text-sm font-medium hover:opacity-50",
                   pathname === "/about" && "text-rose-600"
                 )}>
                 About
@@ -189,7 +189,7 @@ export default function Header({ onSearch }) {
               <Link
                 to="/contact"
                 className={clsx(
-                  "text-sm font-medium hover:text-rose-600",
+                  "text-sm font-medium hover:opacity-50",
                   pathname === "/contact" && "text-rose-600"
                 )}>
                 Contact
@@ -209,7 +209,7 @@ export default function Header({ onSearch }) {
                 <Link
                   to="/profile"
                   className={clsx(
-                    "flex items-center space-x-1  hover:text-rose-600",
+                    "flex items-center space-x-1  hover:opacity-50",
                     pathname === "/"
                       ? isScrolled
                         ? "bg-white/[0.02] text-black"
@@ -236,7 +236,7 @@ export default function Header({ onSearch }) {
               <Link
                 to="/cart"
                 className={clsx(
-                  "relative flex items-center text-black hover:text-rose-500",
+                  "relative flex items-center text-black hover:opacity-50",
                   pathname === "/"
                     ? isScrolled
                       ? "bg-white/[0.02] text-black"
@@ -255,7 +255,14 @@ export default function Header({ onSearch }) {
               {userInfo ? (
                 <Link
                   to="/profile"
-                  className="text-gray-700 hover:text-rose-600 flex items-center gap-1">
+                  className={clsx(
+                    "text-gray-700 hover:opacity-50 flex items-center gap-1",
+                    pathname === "/"
+                      ? isScrolled
+                        ? "bg-white/[0.02] text-black"
+                        : "bg-white/[0.02] text-white"
+                      : ""
+                  )}>
                   <UserIconSvg className="h-5 w-5" />
                   {userInfo.name}
                 </Link>
@@ -276,7 +283,7 @@ export default function Header({ onSearch }) {
               <Link
                 to="/cart"
                 className={clsx(
-                  "relative flex items-center text-black hover:text-rose-500",
+                  "relative flex items-center text-black hover:opacity-50",
                   pathname === "/"
                     ? isScrolled
                       ? "bg-white/[0.02] text-black"
@@ -294,7 +301,7 @@ export default function Header({ onSearch }) {
               {/* Mobile toggle (hamburger) */}
               <button
                 onClick={handleClick}
-                className="ttext-white hover:text-rose-600 p-2 rounded-md z-50 ">
+                className="ttext-white hover:opacity-50 p-2 rounded-md z-50 ">
                 {clicked ? <X size={28} /> : <Menu size={28} />}
               </button>
             </div>
@@ -323,7 +330,7 @@ export default function Header({ onSearch }) {
                       onClick={() =>
                         setExpandedMobileCat((prev) => (prev === "all" ? null : "all"))
                       }
-                      className="flex items-center hover:text-rose-500 gap-2">
+                      className="flex items-center hover:opacity-50 gap-2">
                       Categories
                       <ChevronDown
                         size={16}
@@ -354,7 +361,7 @@ export default function Header({ onSearch }) {
                                       <Link
                                         to={`/category/${subcat.name}`}
                                         onClick={() => setClicked(false)}
-                                        className="hover:text-rose-400">
+                                        className="hover:opacity-50">
                                         {subcat.name.charAt(0).toUpperCase() + subcat.name.slice(1)}
                                       </Link>
                                     </li>
@@ -371,13 +378,13 @@ export default function Header({ onSearch }) {
                   <Link
                     to="/about"
                     onClick={() => setClicked(false)}
-                    className="py-2 hover:text-rose-400">
+                    className="py-2 hover:opacity-50">
                     About
                   </Link>
                   <Link
                     to="/contact"
                     onClick={() => setClicked(false)}
-                    className="py-2 hover:text-rose-400">
+                    className="py-2 hover:opacity-50">
                     Contact
                   </Link>
 

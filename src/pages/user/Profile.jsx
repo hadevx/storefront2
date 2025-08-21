@@ -137,7 +137,7 @@ function Profile() {
   };
   return (
     <Layout>
-      <motion.div className="flex gap-10 flex-col lg:flex-row  justify-center min-h-screen px-2 py-5">
+      <motion.div className="flex gap-10 mt-[70px] flex-col lg:flex-row  justify-center min-h-screen px-2 py-5">
         <div className="lg:w-[50%]">
           <motion.div
             initial="hidden"
