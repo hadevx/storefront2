@@ -113,7 +113,7 @@ function ProductByCategory() {
 
   return (
     <Layout>
-      <div className="min-h-screen  py-5 lg:px-28">
+      <div className="min-h-screen mt-[70px] py-5 lg:px-28">
         {/* Breadcrumb */}
         <nav className="mb-4 px-2 text-gray-600 text-sm">
           <ol className="flex items-center flex-wrap">

@@ -231,7 +231,7 @@ function Payment() {
   return (
     <Layout className="bg-zinc-100">
       <div className="min-h-screen">
-        <div className="flex  flex-col-reverse py-10 lg:flex-row gap-5 lg:gap-10 px-5 lg:px-60 lg:mt-5">
+        <div className="flex mt-[70px] flex-col-reverse py-10 lg:flex-row gap-5 lg:gap-10 px-5 lg:px-60 lg:mt-5">
           <div className="flex lg:w-[50%] gap-5 flex-col">
             <Link
               to="/profile"

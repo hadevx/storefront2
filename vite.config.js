@@ -12,5 +12,4 @@ export default defineConfig({
       plugins: [tailwindcss()],
     },
   },
-  /*   base: "https://adminuseracc.vercel.app/admin", */
 });

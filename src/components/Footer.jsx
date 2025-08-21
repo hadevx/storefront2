@@ -35,7 +35,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-white/[0.02] border-t border-white/[0.02] p-10">
+    <footer className="bg-zinc-100 border-t border-white/[0.02] p-10">
       <div className="container-custom py-16 lg:py-20">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mb-12">

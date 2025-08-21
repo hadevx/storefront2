@@ -82,7 +82,7 @@ export default function FeaturedProducts({ products }) {
     <section className="py-20 lg:py-32" id="featured-products">
       <div className="container-custom">
         <Reveal>
-          <div className="text-left mb-16">
+          <div className="text-left mb-16 px-3">
             <h2 className="text-4xl text-neutral-900 mb-4 lg:text-6xl">
               Latest <span className="italic font-light">Products</span>
             </h2>
@@ -94,7 +94,7 @@ export default function FeaturedProducts({ products }) {
         </Reveal>
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-2 px-3 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-8"
           initial="hidden"
           animate="visible"
           variants={{

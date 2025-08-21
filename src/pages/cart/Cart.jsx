@@ -104,7 +104,7 @@ function Cart() {
 
   return (
     <Layout>
-      <div className="px-4 lg:px-52   mt-10 lg:mt-20 min-h-screen flex gap-5 lg:gap-10 flex-col lg:flex-row lg:justify-between">
+      <div className="px-4 lg:px-52   mt-[70px] lg:mt-20 min-h-screen flex gap-5 lg:gap-10 flex-col lg:flex-row lg:justify-between">
         {/* Cart Table Section */}
         <div className="w-full lg:w-[1000px]">
           <h1 className="font-bold text-3xl mb-5">Cart</h1>

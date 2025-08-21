@@ -18,7 +18,7 @@ export default function ProductCard({ product, onQuickLook }) {
     <Link to={`/products/${product._id}`}>
       <motion.div
         //   onClick={() => onQuickLook(product)} // 👈 trigger QuickLookModal
-        className="group relative bg-white overflow-hidden cursor-pointer"
+        className="group relative  bg-white overflow-hidden cursor-pointer"
         style={{
           borderRadius: "24px",
           boxShadow: "rgba(0, 0, 0, 0.1) 0px 10px 50px",
@@ -74,8 +74,10 @@ export default function ProductCard({ product, onQuickLook }) {
             }}
           />
           <div className="relative z-10">
-            <h3 className="text-lg font-semibold text-black mb-1">{product.name}</h3>
-            <span className="text-xl font-bold text-black">{product.price.toFixed(3)} KD</span>
+            <h3 className="text-sm lg:text-lg font-semibold text-black mb-1">{product.name}</h3>
+            <span className="text-sm lg:text-xl font-bold text-black">
+              {product.price.toFixed(3)} KD
+            </span>
           </div>
         </div>
       </motion.div>

@@ -5,7 +5,7 @@ import { Globe, Heart, Shield } from "lucide-react";
 export default function About() {
   return (
     <Layout>
-      <div className="max-w-7xl min-h-screen mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mt-[70px] min-h-screen mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl lg:text-5xl font-extrabold text-rose-600 mb-4">
