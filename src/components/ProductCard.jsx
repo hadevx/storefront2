@@ -32,22 +32,12 @@ export default function ProductCard({ product, onQuickLook }) {
 
         <div className="absolute top-4 left-4 z-20">
           {isLimited() && (
-            <span
-              className={clsx(
-                "px-3 py-1 text-xs mr-2 font-medium rounded-full backdrop-blur-sm",
-                product.countInStock < 3 && "bg-amber-500/90 text-white"
-              )}>
-              {product.countInStock < 3 && "Limited"}
+            <span className="px-3 py-1 text-xs mr-2 bg-amber-500/90 text-white font-medium rounded-full backdrop-blur-sm">
+              Limited
             </span>
           )}
           {isNew() && (
-            <span
-              className={clsx(
-                "px-3 py-1 text-xs font-medium rounded-full backdrop-blur-sm",
-                product.countInStock < 3 && "bg-amber-500/90 text-white",
-                isNew() && "bg-green-500/90 text-white",
-                product.badge === "Limited" && "bg-amber-500/90 text-white"
-              )}>
+            <span className="px-3 py-1 text-xs bg-green-500/90 text-white font-medium rounded-full backdrop-blur-sm">
               New
             </span>
           )}
