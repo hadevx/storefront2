@@ -90,11 +90,11 @@ export default function Header({ onSearch }) {
 
   return (
     <>
-      {storeStatus?.[0]?.banner?.trim() && (
-        <div className="bg-black text-white text-center py-2 px-4 text-sm lg:text-base font-semibold break-words">
+      {/*   {storeStatus?.[0]?.banner?.trim() && (
+        <div className="bg-white  text-white text-center py-2 px-4 text-sm lg:text-base font-semibold break-words">
           {storeStatus[0].banner}
         </div>
-      )}
+      )} */}
       <motion.header
         className={clsx(
           "fixed top-0 p-2 md:p-0 left-0 right-0  z-50 transition-all duration-300 ",
@@ -108,6 +108,11 @@ export default function Header({ onSearch }) {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}>
+        {storeStatus?.[0]?.banner?.trim() && (
+          <div className="backdrop-blur-lg bg-rose-500  text-white text-center py-2 px-4 text-sm lg:text-base font-semibold break-words">
+            {storeStatus[0].banner}
+          </div>
+        )}
         <div className="container-custom">
           <div className="flex items-center justify-between h-12 lg:h-16 relative">
             {/* Logo */}

@@ -209,7 +209,7 @@ function ProductByCategory() {
             <p className="mb-10 text-gray-700 px-2">
               {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"}
             </p>
-            <div className="flex flex-wrap lg:items-center  lg:gap-7">
+            <div className="flex flex-wrap gap-2 px-2 lg:items-center  lg:gap-7">
               {filteredProducts.map((product) => (
                 <div key={product._id} className="w-[210px] md:min-w-[250px] rounded-lg">
                   <Product product={product} categoryTree={categoryTree || []} />

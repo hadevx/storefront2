@@ -84,7 +84,7 @@ function Product() {
         Go Back
       </Link> */}
 
-      <div className="md:container    sm:px-2 md:mx-auto flex  min-h-screen items-center flex-col  sm:flex-row justify-center   ">
+      <div className="md:container mt-[70px]   sm:px-2 md:mx-auto flex  min-h-screen items-center flex-col  sm:flex-row justify-center   ">
         {isLoading ? (
           <Loader />
         ) : (

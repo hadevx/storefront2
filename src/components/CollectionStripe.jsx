@@ -148,9 +148,7 @@ export function CollectionStrip() {
                   <img
                     src={collection.image || "/placeholder.svg"}
                     alt={collection.name}
-                    fill
-                    className="object-cover"
-                    sizes="320px"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300" />
                 </motion.div>
