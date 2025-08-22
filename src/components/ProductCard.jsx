@@ -14,6 +14,10 @@ export default function ProductCard({ product, onQuickLook }) {
     const diffDays = (now - createdDate) / (1000 * 60 * 60 * 24);
     return diffDays <= 3; // product is new if within 3 days
   };
+
+  const isLimited = () => {
+    return product.countInStock < 5;
+  };
   return (
     <Link to={`/products/${product._id}`}>
       <motion.div
@@ -27,15 +31,15 @@ export default function ProductCard({ product, onQuickLook }) {
         {/* Badge */}
 
         <div className="absolute top-4 left-4 z-20">
-          <span
-            className={clsx(
-              "px-3 py-1 text-xs mr-2 font-medium rounded-full backdrop-blur-sm",
-              product.countInStock < 3 && "bg-amber-500/90 text-white",
-              isNew() && "bg-blue-500/90 text-white",
-              product.badge === "Limited" && "bg-amber-500/90 text-white"
-            )}>
-            {product.countInStock < 3 && "Limited"}
-          </span>
+          {isLimited() && (
+            <span
+              className={clsx(
+                "px-3 py-1 text-xs mr-2 font-medium rounded-full backdrop-blur-sm",
+                product.countInStock < 3 && "bg-amber-500/90 text-white"
+              )}>
+              {product.countInStock < 3 && "Limited"}
+            </span>
+          )}
           {isNew() && (
             <span
               className={clsx(
