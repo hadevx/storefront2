@@ -99,7 +99,7 @@ export default function ProductCard({ product, onQuickLook }) {
                   <span className="text-white font-bold">{newPrice.toFixed(3)} KD</span>
                 </div>
               ) : (
-                <span className="text-black font-bold">{oldPrice.toFixed(3)} KD</span>
+                <span className="text-white font-bold">{oldPrice.toFixed(3)} KD</span>
               )}
             </div>
           </div>
