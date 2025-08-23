@@ -60,10 +60,10 @@ export function HeroSection() {
         <div className="container-custom text-center text-white">
           <Reveal>
             <h1 className="text-4xl md:text-7xl lg:text-8xl xl:text-9xl font-bold leading-none tracking-tight mb-6">
-              <AnimatedText text="Design furniture for" delay={0.5} />
+              <AnimatedText text="Elevate your style" delay={0.5} />
               <br />
               <span className="italic font-light">
-                <AnimatedText text="spaces that breathe." delay={1.1} />
+                <AnimatedText text="with timeless fashion." delay={1.1} />
               </span>
             </h1>
           </Reveal>
@@ -74,7 +74,13 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7, ease: [0.21, 0.47, 0.32, 0.98] }}>
-              Designed in Belgium, crafted to endure — timeless pieces for modern living.
+              Designed in{" "}
+              <img
+                src="https://flagcdn.com/w20/kw.png"
+                alt="Kuwait Flag"
+                className="w-5 h-5 inline-block"
+              />{" "}
+              — versatile clothes for modern lives.
             </motion.p>
           </Reveal>
         </div>

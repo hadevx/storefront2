@@ -6,27 +6,26 @@ import clsx from "clsx";
 const materials = [
   {
     id: "pistachio",
-    name: "Pistachio", // shortened from "Pistachio Green"
-    description: "Luxurious pistachio green velvet with rich texture and depth",
+    name: "Ordered",
+    description: "Luxurious, long-staple cotton known for its softness and durability",
     image: "/material-oak-macro.png",
-    backgroundImage:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/new-source_bloom_max_1x.jpg-t1V6yfeAZKKcEvWEkPn7Pfx7hkHDMf.jpeg",
+    backgroundImage: "./images/img3.jpg",
     tint: "bg-green-50",
   },
   {
     id: "lunar",
-    name: "Lunar", // shortened from "Lunar Gray"
-    description: "Sophisticated lunar gray with subtle metallic undertones",
+    name: "Delivered",
+    description: "Sustainably grown cotton with a smooth, breathable feel",
     image: "/material-walnut-macro.png",
-    backgroundImage: "/lunar-gray-interior.png",
+    backgroundImage: "./images/img1.jpg",
     tint: "bg-gray-100",
   },
   {
     id: "martian",
-    name: "Martian", // shortened from "Martian Red"
-    description: "Bold martian red with warm terracotta influences",
+    name: "Present",
+    description: "Premium cotton with extra-long fibers for softness and strength",
     image: "/material-steel-macro.png",
-    backgroundImage: "/martian-red-interior.png",
+    backgroundImage: "./images/img2.jpg",
     tint: "bg-red-50",
   },
 ];
@@ -92,15 +91,17 @@ export function MaterialsSection() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="font-bold mb-4 text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-center md:text-left">
-                  <AnimatedText text={activeMaterialData.name} delay={0.2} />
+                  className="font-bold px-5 mb-4 text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-center md:text-left">
+                  {/* <AnimatedText text={activeMaterialData.name} delay={0.2} /> */}
+                  <AnimatedText text={activeMaterialData.description} delay={0.2} />
                 </motion.h2>
               </AnimatePresence>
-              <p className="text-base p-5 sm:text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl text-center md:text-left mx-auto md:mx-0">
+
+              {/*   <p className="text-base p-5 sm:text-lg md:text-xl text-white/90 leading-relaxed max-w-2xl text-center md:text-left mx-auto md:mx-0">
                 Every piece begins with the finest materials, carefully selected for their beauty,
                 durability, and sustainable origins. Our craftspeople honor traditional techniques
                 while embracing modern precision.
-              </p>
+              </p> */}
             </div>
           </Reveal>
         </div>

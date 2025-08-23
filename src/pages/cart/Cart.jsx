@@ -9,7 +9,8 @@ import clsx from "clsx";
 import { toast } from "react-toastify";
 import { useGetAddressQuery } from "../../redux/queries/userApi";
 import { useGetDeliveryStatusQuery, useGetAllProductsQuery } from "../../redux/queries/productApi";
-import { Badge } from "@medusajs/ui";
+import Lottie from "lottie-react";
+import empty from "./empty.json";
 
 function Cart() {
   // Local state for tracking quantity dropdown selection
@@ -31,19 +32,10 @@ function Cart() {
   // Fetch user address if logged in
   const { data: userAddress } = useGetAddressQuery(userInfo?._id);
 
-  /**
-   * Remove an item from the cart
-   * @param {string} id - Product ID to remove
-   */
   const handleRemove = (id) => {
     dispatch(removeFromCart(id));
   };
 
-  /**
-   * Handle quantity change in the dropdown
-   * @param {object} e - Event object
-   * @param {object} item - Cart item
-   */
   const handleChange = (e, item) => {
     setSelectedValue(e.target.value);
     const newQty = e.target.value;
@@ -111,7 +103,12 @@ function Cart() {
 
           {/* Show empty cart message if no items */}
           {cartItems?.length === 0 ? (
-            <Message dismiss={false}>Your cart is empty</Message>
+            <>
+              <Message dismiss={false}>Your cart is empty</Message>
+              <div className="w-96 mx-auto">
+                <Lottie animationData={empty} loop={true} />
+              </div>
+            </>
           ) : (
             <table className="min-w-full overflow-x-scroll">
               <thead>
@@ -221,7 +218,7 @@ function Cart() {
 
             {/* Delivery Time */}
             <div className="flex justify-between">
-              <p className="flex gap-2">Expected delivery in:</p>
+              <p className="flex gap-2">Expected delivery:</p>
               <p className="uppercase">{deliveryStatus?.[0].timeToDeliver}</p>
             </div>
 

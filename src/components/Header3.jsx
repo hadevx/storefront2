@@ -152,7 +152,7 @@ export default function Header({ onSearch }) {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="absolute top-full mt-3 left-0 w-[700px] bg-white shadow-2xl rounded-lg border border-gray-200 p-6 grid grid-cols-3 gap-6 z-20">
+                      className="absolute top-full mt-3 left-0  w-[700px] bg-white shadow-2xl rounded-lg border border-gray-200 p-6 grid grid-cols-3 gap-6 z-20">
                       {categoryTree?.map((cat) => (
                         <div key={cat._id}>
                           <Link
