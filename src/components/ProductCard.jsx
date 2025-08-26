@@ -75,7 +75,7 @@ export default function ProductCard({ product, onQuickLook }) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}>
             <img
-              src={product.image || "/placeholder.svg"}
+              src={product.image[0] || "/placeholder.svg"}
               alt={product.name}
               className="object-cover w-full h-full"
             />
