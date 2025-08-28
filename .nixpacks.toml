@@ -1,8 +1,0 @@
-[phases.setup]
-packages = ["curl" "wget"]
-
-[phases.build]
-command = "npm install && npm run build"
-
-[phases.start]
-command = "npm run start"
