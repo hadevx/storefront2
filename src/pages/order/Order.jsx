@@ -95,15 +95,29 @@ const Order = () => {
             </div>
           </div>
           <div className="bg-white rounded-lg shadow border p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-2">Customer Information</h3>
-            <p className="font-medium">{userInfo?.name}</p>
-            <p className="text-sm text-gray-600">{userInfo?.email}</p>
-            <p className="text-sm text-gray-600 mt-2">
-              {order?.shippingAddress?.governorate},{order?.shippingAddress?.city},
-              {order?.shippingAddress?.block},{order?.shippingAddress?.street},
-              {order?.shippingAddress?.house}
-            </p>
+            <h3 className="text-lg font-semibold mb-4">Customer Information</h3>
+            <div className="grid grid-cols-2">
+              <div className="">
+                <div className="mb-2">
+                  <p className="font-medium">Name:</p>
+                  <p className="text-gray-700">{userInfo?.name}</p>
+                </div>
+                <div className="mb-2">
+                  <p className="font-medium">Email:</p>
+                  <p className="text-gray-700">{userInfo?.email}</p>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium mb-1">Shipping Address:</p>
+                <p className="text-gray-700 ">Governorate: {order?.shippingAddress?.governorate}</p>
+                <p className="text-gray-700">City: {order?.shippingAddress?.city}</p>
+                <p className="text-gray-700">Block: {order?.shippingAddress?.block}</p>
+                <p className="text-gray-700">Street: {order?.shippingAddress?.street}</p>
+                <p className="text-gray-700">House: {order?.shippingAddress?.house}</p>
+              </div>
+            </div>
           </div>
+
           <div className="flex justify-between items-center">
             <button
               onClick={handlePdf}
