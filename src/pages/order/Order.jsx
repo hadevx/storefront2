@@ -16,11 +16,11 @@ const Order = () => {
   const { data: order } = useGetOrderQuery(orderId);
 
   const { toPDF, targetRef } = usePDF({
-    filename: `invoice-${order?.createdAt.substring(0, 10)}.pdf`,
+    filename: `invoice-${order?.createdAt?.substring(0, 10)}.pdf`,
   });
 
   const calculateSubtotal = () => {
-    return order?.orderItems.reduce((total, item) => total + item.qty * item.price, 0).toFixed(3);
+    return order?.orderItems?.reduce((total, item) => total + item.qty * item.price, 0).toFixed(3);
   };
 
   const calculateTotal = () => {
@@ -86,7 +86,7 @@ const Order = () => {
               <div className="text-right">
                 <p className="text-sm text-gray-600 mb-3">Subtotal: {calculateSubtotal()} KD</p>
                 <p className="text-sm text-gray-600 mb-3">
-                  Shipping: {order?.shippingPrice.toFixed(3)} KD
+                  Shipping: {order?.shippingPrice?.toFixed(3)} KD
                 </p>
                 <p className="text-lg font-semibold text-gray-800 mt-2">
                   Total: {calculateTotal()} KD
