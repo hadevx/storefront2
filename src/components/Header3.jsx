@@ -124,7 +124,7 @@ export default function Header({ onSearch }) {
                 to="/"
                 className={clsx("text-xl lg:text-2xl font-bold tracking-tight transition-colors")}
                 aria-label="KATACHI Studio Home">
-                Ecommerce
+                WebSchema
               </Link>
             </motion.div>
             <nav className="hidden md:flex space-x-6 w-[40%] justify-center relative ">
