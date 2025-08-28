@@ -71,7 +71,7 @@ const Order = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {order?.orderItems.map((item) => (
+                  {order?.orderItems?.map((item) => (
                     <tr key={item._id} className="border-b text-sm">
                       <td className="py-2">{item.name}</td>
                       <td className="text-center py-2">{item.qty}</td>
