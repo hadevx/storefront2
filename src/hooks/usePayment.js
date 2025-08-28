@@ -57,7 +57,7 @@ export function usePayment(cartItems, userAddress, paymentMethod, deliveryStatus
       }).unwrap();
 
       await updateStock({ orderItems: cartItems }).unwrap();
-
+      console.log("testing :", res);
       dispatch(clearCart());
       toast.success("Order created successfully");
       navigate(`/order/${res._id}`);
