@@ -59,7 +59,7 @@ function Product({ product, categoryTree }) {
           </span>
         )}
         <img
-          src={product?.image}
+          src={product?.image[0].url}
           alt={product.name}
           className="w-full h-60 sm:h-64 md:h-56 lg:h-60 object-cover group-hover:scale-105 transition-transform duration-300"
         />

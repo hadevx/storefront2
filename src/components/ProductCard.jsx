@@ -16,6 +16,7 @@ export default function ProductCard({ product, onQuickLook }) {
     return diffDays <= 3; // product is new if within 3 days
   };
 
+  console.log(product);
   const isLimited = () => {
     return product.countInStock < 5;
   };
@@ -75,7 +76,7 @@ export default function ProductCard({ product, onQuickLook }) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}>
             <img
-              src={product.image[0] || "/placeholder.svg"}
+              src={product.image[0].url || "/placeholder.svg"}
               alt={product.name}
               className="object-cover w-full h-full"
             />

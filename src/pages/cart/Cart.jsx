@@ -139,7 +139,7 @@ function Cart() {
                     <td className="px-0 lg:px-4 py-10 border-b border-gray-300">
                       <Link to={`/products/${item._id}`}>
                         <img
-                          src={item.image}
+                          src={item.image[0].url}
                           alt={item.name}
                           className="w-16 h-16 lg:w-24 lg:h-24 bg-zinc-100/50 border-2 object-cover rounded-xl"
                         />

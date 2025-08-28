@@ -79,22 +79,27 @@ const findCategoryNameById = (id, nodes) => {
 
 export function CollectionStrip() {
   const { data: products, isLoading, error } = useGetAllProductsQuery();
+
   const { data: categoryTree } = useGetCategoriesTreeQuery();
   const navigate = useNavigate();
   const uniqueCategoryIds = [...new Set(products?.map((product) => product?.category))];
+
   const mainCategoryIds = uniqueCategoryIds?.filter((id) =>
     categoryTree?.some((cat) => String(cat._id) === String(id))
   );
 
   const cat = mainCategoryIds?.map((id) => {
+    const category = (categoryTree || []).find((c) => c._id === id);
+    console.log(category);
+
     const name = findCategoryNameById(id, categoryTree || []) || "Unknown";
     const label = name.charAt(0).toUpperCase() + name.slice(1);
 
-    const categoryProducts = products?.filter((p) => String(p.category) === String(id));
+    const categoryProducts = products?.filter((p) => String(p.category) === String(id)) || [];
     const count = categoryProducts.length;
 
-    // Use the first product image as category image
-    const image = categoryProducts[0]?.image || "/images/default-category.jpg";
+    // ✅ Show category image first, else first product image, else placeholder
+    const image = category?.image || categoryProducts?.[0]?.image?.[0]?.url || "/placeholder.svg";
 
     return { id, label, count, image };
   });

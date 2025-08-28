@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "../../Layout";
-import { Link, useNavigate } from "react-router-dom";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -25,25 +24,23 @@ const findCategoryNameById = (id, nodes) => {
   }
   return null;
 };
+
 function Product() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  // Extract productId from URL
   const { productId } = useParams();
   const { data: discountStatus } = useGetDiscountStatusQuery();
-  const { data: product, isLoading, error, refetch } = useGetProductByIdQuery(productId);
+  const { data: product, isLoading, refetch } = useGetProductByIdQuery(productId);
   const { data: categoryTree } = useGetCategoriesTreeQuery();
-  console.log(product);
-  // API to get product by id
+
+  // Refetch when stock changes
   useEffect(() => {
     if (product) {
-      refetch(); // Refetch data whenever the stock or any other dependency changes
+      refetch();
     }
   }, [product?.countInStock, refetch]);
-  // Get the items in the cart
+
   const cartItems = useSelector((state) => state.cart.cartItems);
 
-  //Track the quantity of the product
   const [counter, setCounter] = useState(1);
 
   const handleIncrement = () => {
@@ -62,105 +59,140 @@ function Product() {
     dispatch(addToCart({ ...product, price: newPrice, qty: Number(counter) }));
     toast.success(`${product.name} added to cart`, { position: "top-center" });
   };
+
   const oldPrice = product?.price;
   let newPrice = oldPrice;
 
   if (discountStatus && discountStatus.length > 0) {
-    // Find a discount where category includes 'all' or the product category
     const applicableDiscount = discountStatus.find((d) =>
       d.category.includes(findCategoryNameById(product?.category, categoryTree || []))
     );
-    console.log(applicableDiscount);
     if (applicableDiscount) {
       newPrice = oldPrice - oldPrice * applicableDiscount.discountBy;
     }
   }
 
+  // Active image state
+  const [activeImage, setActiveImage] = useState(product?.image?.[0]?.url);
+  useEffect(() => {
+    if (product?.image?.length > 0) {
+      setActiveImage(product.image[0].url);
+    }
+  }, [product]);
+
   return (
     <Layout>
-      {/*   <Link
-        to="/"
-        className="absolute bg-gradient-to-t from-zinc-200 to-zinc-50 drop-shadow-md left-5 mt-5 lg:left-10 text-black hover:bg-zinc-200/40 border z-20 bg-zinc-200/50 p-3 rounded-lg font-bold">
-        Go Back
-      </Link> */}
-
-      <div className="md:container mt-[70px]   sm:px-2 md:mx-auto flex  min-h-screen items-center flex-col  sm:flex-row justify-center   ">
+      <div className="container mt-[100px]  px-4 mx-auto flex min-h-screen  flex-col sm:flex-row justify-center gap-10">
         {isLoading ? (
           <Loader />
         ) : (
           <>
-            <div className=" w-[400px] sm:w-2/3  md:max-w-1/2 md:w-[500px] lg:w-1/2">
-              <img src={product?.image} className="w-full h-full  object-cover" />
+            {/* Image Section */}
+            <div className="w-full sm:w-2/3 md:w-1/2 lg:w-[500px] flex flex-col items-center">
+              {/* Main Image */}
+              <div className="w-full h-[500px] overflow-hidden rounded-xl shadow-lg">
+                <img
+                  src={activeImage}
+                  loading="lazy"
+                  alt={product?.name}
+                  className="w-full h-full object-cover rounded-xl transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+
+              {/* Thumbnails */}
+              {product?.image?.length > 1 && (
+                <div className="flex gap-4 mt-5 justify-center flex-wrap">
+                  {product.image.map((img, index) => (
+                    <img
+                      key={index}
+                      src={img.url}
+                      loading="lazy"
+                      alt={`Thumbnail ${index + 1}`}
+                      className={`w-20 h-20 object-cover rounded-md cursor-pointer transition-all duration-200 border-2 ${
+                        img.url === activeImage
+                          ? "border-blue-500 shadow-md opacity-70"
+                          : "border-gray-300 hover:opacity-80"
+                      }`}
+                      onClick={() => setActiveImage(img.url)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="relative flex flex-col    rounded-2xl  p-10 lg:p-20 w-full sm:w-1/2 md:w-1/2 ">
+
+            {/* Product Info */}
+            <div className="relative  flex flex-col rounded-2xl p-8 lg:p-12 w-full sm:w-1/2 md:w-1/2">
+              {/* Discount badge */}
               {oldPrice !== newPrice && (
-                <p className="absolute top-0 lg:top-5 bg-blue-500 text-white px-2 py-1 rounded-full">
+                <span className="absolute  top-1 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
                   -{(((oldPrice - newPrice) / oldPrice) * 100).toFixed(0)}%
-                </p>
+                </span>
               )}
 
-              <h1 className="text-3xl  font-extrabold lg:mb-5">{product?.name}</h1>
-              <p className="text-gray-500 mb-5 lg:mb-10 text-base lg:text-xl">
-                {product?.description}
-              </p>
+              <h1 className="text-3xl font-extrabold mb-4">{product?.name}</h1>
+              <p className="text-gray-600 mb-6 leading-relaxed">{product?.description}</p>
+
+              {/* Quantity controls */}
               {product?.countInStock > 0 && (
-                <div className="flex justify-start items-center gap-5 mb-5">
+                <div className="flex items-center gap-6 mb-6">
                   <button
                     onClick={handleDecrement}
                     className={clsx(
-                      "px-3 py-1 active:bg-gray-500 drop-shadow-xl bg-black border-[2px] rounded-md  font-bold text-3xl",
+                      "px-4 py-2 border rounded-md font-bold text-2xl transition-all",
                       counter === 1
-                        ? "bg-inherit border-[2px] border-black text-black"
-                        : "text-white border-[2px]"
+                        ? "border-gray-400 text-gray-400 cursor-not-allowed"
+                        : "bg-black text-white hover:bg-gray-800"
                     )}>
                     -
                   </button>
-                  <p className="px-3 text-3xl ">{counter}</p>
+                  <span className="text-2xl font-semibold">{counter}</span>
                   <button
                     onClick={handleIncrement}
                     className={clsx(
-                      "px-3 py-1 active:bg-gray-500 drop-shadow-xl bg-black border-[2px] rounded-md font-bold text-3xl",
+                      "px-4 py-2 border rounded-md font-bold text-2xl transition-all",
                       counter === product.countInStock
-                        ? "bg-inherit border-[2px] border-black text-black"
-                        : "text-white border-[2px]"
+                        ? "border-gray-400 text-gray-400 cursor-not-allowed"
+                        : "bg-black text-white hover:bg-gray-800"
                     )}>
                     +
                   </button>
                 </div>
               )}
-              <p className="font-bold text-orange-500 mb-2">
+
+              {/* Stock info */}
+              <p className="font-semibold text-orange-600 mb-3">
                 {product?.countInStock > 0 &&
                   product?.countInStock <= 5 &&
                   `Only ${product.countInStock} left in stock`}
               </p>
-              <p className="font-bold text-3xl mb-5 ">
+
+              {/* Price */}
+              <div className="mb-8">
                 {newPrice < oldPrice ? (
-                  <p className="flex flex-col">
-                    <span style={{ textDecoration: "line-through", color: "gray" }}>
+                  <div className="flex flex-col">
+                    <span className="line-through text-gray-500 text-lg">
                       {oldPrice.toFixed(3)} KD
-                    </span>{" "}
-                    <span style={{ color: "green", fontWeight: "bold" }}>
+                    </span>
+                    <span className="text-green-600 font-bold text-3xl">
                       {newPrice?.toFixed(3)} KD
                     </span>
-                  </p>
+                  </div>
                 ) : (
-                  <p>
-                    <span style={{ color: "black", fontWeight: "bold" }}>
-                      {oldPrice?.toFixed(3)} KD
-                    </span>
-                  </p>
+                  <span className="text-3xl font-bold">{oldPrice?.toFixed(3)} KD</span>
                 )}
-              </p>
+              </div>
+
+              {/* Add to Cart */}
               <button
                 className={clsx(
-                  " rounded-lg  text-white px-5 py-4 font-bold uppercase drop-shadow-lg",
+                  "px-6 py-4 rounded-xl font-bold uppercase transition-all shadow-md",
                   product?.countInStock === 0
-                    ? "bg-zinc-300 "
-                    : "bg-gradient-to-t from-zinc-900 to-zinc-700 hover:bg-gradient-to-b "
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-gradient-to-r from-black to-gray-800 text-white hover:from-gray-800 hover:to-black"
                 )}
                 onClick={handleAddToCart}
                 disabled={product?.countInStock === 0}>
-                {product?.countInStock === 0 ? "Out of stock" : "Add to cart"}
+                {product?.countInStock === 0 ? "Out of stock" : "Add to Cart"}
               </button>
             </div>
           </>
