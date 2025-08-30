@@ -23,9 +23,15 @@ function Product({ product, categoryTree }) {
   const cartItems = useSelector((state) => state.cart.cartItems);
   const { data: discountStatus } = useGetDiscountStatusQuery();
 
-  const oldPrice = product.price;
+  // ✅ Determine the price (base product or variants)
+  const variantPrices = product.variants?.map((v) => v.price) || [];
+  const basePrice = product.price;
+
+  // If variants exist, use the lowest variant price
+  const oldPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : basePrice;
   let newPrice = oldPrice;
 
+  // ✅ Apply discount if available
   if (discountStatus && discountStatus.length > 0) {
     const applicableDiscount = discountStatus.find((d) =>
       d.category.includes(findCategoryNameById(product.category, categoryTree || []))
@@ -51,7 +57,7 @@ function Product({ product, categoryTree }) {
   const categoryName = findCategoryNameById(product.category, categoryTree || []) || "";
 
   return (
-    <div className="flex flex-col bg-white rounded-2xl   duration-300 overflow-hidden">
+    <div className="flex flex-col bg-white rounded-2xl duration-300 overflow-hidden">
       <Link to={`/products/${product._id}`} className="relative group">
         {newPrice < oldPrice && (
           <span className="absolute top-3 left-3 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full z-10">
@@ -95,9 +101,8 @@ function Product({ product, categoryTree }) {
             {product.countInStock === 0 ? (
               "Out of stock"
             ) : (
-              <p className="">
-                <p className="md:hidden ">
-                  {" "}
+              <p>
+                <p className="md:hidden">
                   <ShoppingCart />
                 </p>
                 <p className="hidden md:flex">Add to Cart</p>
