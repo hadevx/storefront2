@@ -98,26 +98,33 @@ export default function FeaturedProducts({ products, isLoading }) {
               ))}
             </motion.div>
 
-            {/* Big CTA strip */}
+            {/* Simple dark CTA */}
             <div className="mt-10 lg:mt-14">
-              <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+                {/* subtle glow */}
                 <div className="pointer-events-none absolute inset-0">
-                  <div className="absolute left-[-120px] top-[-120px] h-64 w-64 rounded-full bg-neutral-200/50 blur-3xl" />
-                  <div className="absolute right-[-140px] bottom-[-140px] h-72 w-72 rounded-full bg-neutral-100 blur-3xl" />
+                  <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+                  <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-white/5 blur-3xl" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent" />
                 </div>
 
                 <div className="relative flex flex-col gap-4 p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-900">Want more styles?</p>
-                    <p className="mt-1 text-sm text-neutral-600">
-                      Explore the full catalog and discover new favorites.
+                  <div className="max-w-xl">
+                    <p className="text-xs font-semibold tracking-wide text-white/70 uppercase">
+                      Explore more
+                    </p>
+                    <h3 className="mt-2 text-xl sm:text-2xl font-black text-white">
+                      Want more styles?
+                    </h3>
+                    <p className="mt-2 text-sm text-white/70">
+                      Browse the full catalog and discover new favorites.
                     </p>
                   </div>
 
                   <Link
                     to="/all-products"
-                    className="group inline-flex w-fit items-center justify-center rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition
-                               hover:bg-zinc-800">
+                    className="group inline-flex w-fit items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-bold text-zinc-950 shadow-sm transition
+                   hover:bg-white/90 active:scale-[0.99]">
                     Browse all products
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
