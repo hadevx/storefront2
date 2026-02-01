@@ -521,11 +521,7 @@ function Profile() {
                           <div className="mt-3 flex items-center justify-between gap-3">
                             <button
                               type="button"
-                              onClick={() =>
-                                toast.info("Order details screen not connected yet", {
-                                  position: "top-center",
-                                })
-                              }
+                              onClick={() => navigate(`/order/${order?._id}`)}
                               className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-900">
                               View details <ChevronRight className="h-4 w-4" />
                             </button>
