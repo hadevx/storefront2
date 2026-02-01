@@ -210,19 +210,19 @@ function Profile() {
           className="min-h-screen mx-auto w-full max-w-6xl mt-[70px] lg:mt-[110px] px-3 pb-16">
           {/* Top bar */}
           <div className="flex items-center justify-between gap-3">
-            <button
+            {/*   <button
               type="button"
               onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 shadow-sm hover:bg-neutral-50 transition">
+              className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 shadow-sm hover:bg-neutral-50 transition">
               <ArrowLeft className="h-4 w-4" />
               Back
-            </button>
+            </button> */}
 
-            <button
+            {/*  <button
               type="button"
               onClick={handleLogout}
               disabled={loadingLogout}
-              className="inline-flex items-center gap-2 rounded-2xl bg-neutral-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-900 active:scale-[0.99] transition">
+              className="inline-flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-900 active:scale-[0.99] transition">
               {loadingLogout ? (
                 <Spinner className="border-t-transparent" />
               ) : (
@@ -231,12 +231,12 @@ function Profile() {
                   Logout
                 </>
               )}
-            </button>
+            </button> */}
           </div>
 
           {/* Header */}
           <div className="mt-6 w-full min-w-0 rounded-3xl border border-neutral-200 bg-white/80 backdrop-blur shadow-sm p-5 md:p-7">
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between min-w-0">
+            <div className="flex items-center justify-between gap-5 md:flex-row md:items-center md:justify-between min-w-0">
               <div className="flex items-center gap-4 min-w-0">
                 <div className="shrink-0 size-16 rounded-2xl bg-neutral-900 text-white grid place-items-center font-bold text-lg">
                   {initial}
@@ -252,6 +252,20 @@ function Profile() {
                   </p>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loadingLogout}
+                className="inline-flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-900 active:scale-[0.99] transition">
+                {loadingLogout ? (
+                  <Spinner className="border-t-transparent" />
+                ) : (
+                  <>
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Stats */}

@@ -19,6 +19,8 @@ import { HeroSection } from "../../components/HeroSection";
 
 import X from "../../components/X";
 import Y from "../../components/Y";
+import Z from "../../components/Z";
+
 import HeroSection2 from "../../components/HeroSection2";
 import HeroSection3 from "../../components/HeroSection3";
 import HeroSection5 from "../../components/HeroSection5";
@@ -54,6 +56,7 @@ function Home() {
       {/* <MaterialsSection /> */}
       <X />
       <Y />
+      <Z />
     </Layout>
   );
 }

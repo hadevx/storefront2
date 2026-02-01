@@ -3,13 +3,81 @@ import { useParams } from "react-router-dom";
 import Layout from "../../Layout";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "react-toastify";
 import clsx from "clsx";
 import { useGetProductByIdQuery } from "../../redux/queries/productApi";
 import Loader from "../../components/Loader";
-import { Check, ShieldCheck, Truck, RotateCcw, Minus, Plus, Heart } from "lucide-react";
+import { Check, Minus, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "../../components/Reveal";
+
+/** ✅ Success SVG animation (no toast) */
+function AddedAnimation() {
+  return (
+    <motion.div
+      className="absolute inset-0 grid place-items-center"
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.18 }}>
+      <div className="flex items-center gap-2">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+          className="drop-shadow">
+          <motion.circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="white"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          />
+          <motion.path
+            d="M7.5 12.5L10.5 15.2L16.8 9.2"
+            stroke="white"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut", delay: 0.1 }}
+          />
+        </svg>
+
+        <motion.span
+          className="text-sm font-semibold text-white"
+          initial={{ opacity: 0, x: -6 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2, delay: 0.12 }}>
+          Added
+        </motion.span>
+      </div>
+    </motion.div>
+  );
+}
+
+/** ✅ Simple error hint (optional, lightweight) */
+function InlineHint({ show, text }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.p
+          className="mt-3 text-sm text-rose-600"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.18 }}>
+          {text}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  );
+}
 
 function Product() {
   const dispatch = useDispatch();
@@ -22,6 +90,10 @@ function Product() {
   const [activeImage, setActiveImage] = useState(null);
   const [activeVariant, setActiveVariant] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+
+  // ✅ UI feedback instead of toast
+  const [uiError, setUiError] = useState("");
+  const [addedPulse, setAddedPulse] = useState(false);
 
   useEffect(() => {
     if (!product) return;
@@ -38,7 +110,10 @@ function Product() {
       setActiveImage(product.image?.[0]?.url || "/placeholder.svg");
       setSelectedSize(null);
     }
+
     setCounter(1);
+    setUiError("");
+    setAddedPulse(false);
   }, [product, refetch]);
 
   const stock = activeVariant ? selectedSize?.stock || 0 : product?.countInStock || 0;
@@ -51,13 +126,25 @@ function Product() {
     if (counter > 1) setCounter((c) => c - 1);
   };
 
+  const triggerAdded = () => {
+    setAddedPulse(true);
+    window.clearTimeout(triggerAdded._t);
+    triggerAdded._t = window.setTimeout(() => setAddedPulse(false), 900);
+  };
+  // eslint-disable-next-line
+  triggerAdded._t = triggerAdded._t || null;
+
   const handleAddToCart = () => {
+    setUiError("");
+
     if (activeVariant && !selectedSize) {
-      return toast.error("Please select a size", { position: "top-center" });
+      setUiError("Please select a size.");
+      return;
     }
 
     if (stock === 0) {
-      return toast.error("Out of stock", { position: "top-center" });
+      setUiError("Out of stock.");
+      return;
     }
 
     const productInCart = cartItems.find(
@@ -69,7 +156,8 @@ function Product() {
     );
 
     if (productInCart && productInCart.qty >= stock) {
-      return toast.error("You can't add more", { position: "top-center" });
+      setUiError("You can't add more than available stock.");
+      return;
     }
 
     dispatch(
@@ -84,7 +172,7 @@ function Product() {
       }),
     );
 
-    toast.success(`${product.name} added to cart`, { position: "top-center" });
+    triggerAdded();
   };
 
   const allImages = useMemo(() => {
@@ -99,7 +187,6 @@ function Product() {
       {isLoading ? (
         <Loader />
       ) : (
-        // ✅ prevent horizontal scroll caused by overflow-x
         <div className="relative overflow-x-hidden">
           {/* Page background */}
           <div className="pointer-events-none absolute inset-0 -z-10">
@@ -130,10 +217,8 @@ function Product() {
                       />
                     </AnimatePresence>
 
-                    {/* Subtle overlay for premium look */}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/8 via-transparent to-transparent" />
 
-                    {/* Top badges */}
                     <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-3">
                       {stock > 0 && stock < 5 ? (
                         <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
@@ -151,8 +236,7 @@ function Product() {
                     </div>
                   </div>
 
-                  {/* ✅ Thumbnails row - no horizontal page scroll.
-                      - keep it wrapping instead of overflow-x-auto */}
+                  {/* Thumbnails */}
                   <div className="p-4">
                     <div className="flex flex-wrap gap-3">
                       {allImages.map((img, idx) => {
@@ -248,6 +332,7 @@ function Product() {
                                 setActiveImage(variant.images?.[0]?.url || product.image?.[0]?.url);
                                 setSelectedSize(variant.sizes?.[0] || null);
                                 setCounter(1);
+                                setUiError("");
                               }}
                               className={clsx(
                                 "relative h-11 w-11 rounded-2xl border transition",
@@ -294,6 +379,7 @@ function Product() {
                               onClick={() => {
                                 setSelectedSize(s);
                                 setCounter(1);
+                                setUiError("");
                               }}
                               className={clsx(
                                 "h-11 rounded-2xl border text-sm font-medium transition",
@@ -359,13 +445,28 @@ function Product() {
                       onClick={handleAddToCart}
                       disabled={stock === 0}
                       className={clsx(
-                        "w-full inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold transition shadow-sm",
+                        "relative w-full overflow-hidden inline-flex items-center justify-center rounded-lg px-5 py-4 text-sm font-semibold transition shadow-sm",
                         stock === 0
                           ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
-                          : "bg-neutral-950 text-white hover:bg-neutral-900 active:scale-[0.99]",
+                          : addedPulse
+                            ? "bg-emerald-600 text-white"
+                            : "bg-neutral-950 text-white hover:bg-neutral-900 active:scale-[0.99]",
                       )}>
-                      {stock === 0 ? "Out of stock" : "Add to cart"}
+                      {/* Default label */}
+                      <span
+                        className={clsx(
+                          "transition-opacity",
+                          addedPulse ? "opacity-0" : "opacity-100",
+                        )}>
+                        {stock === 0 ? "Out of stock" : "ADD TO CART"}
+                      </span>
+
+                      {/* ✅ Animated SVG success */}
+                      <AnimatePresence>{addedPulse && <AddedAnimation />}</AnimatePresence>
                     </button>
+
+                    {/* ✅ Inline error (instead of toast) */}
+                    <InlineHint show={!!uiError} text={uiError} />
                   </div>
                 </div>
               </div>
