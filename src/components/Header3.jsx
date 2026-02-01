@@ -1,11 +1,4 @@
-import {
-  ShoppingCart,
-  Menu,
-  X,
-  Search as SearchIcon,
-  User as UserIconSvg,
-  ChevronDown,
-} from "lucide-react";
+import { ShoppingCart, Menu, X, User as UserIconSvg, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,12 +28,13 @@ export default function Header({ onSearch }) {
 
   const menuRef = useRef(null);
 
-  // close on outside click
+  // close on outside click (keep, but full screen menu mostly uses backdrop click)
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setClicked(false);
         setExpandedCategoryId(null);
+        setExpandedMobileCat(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -71,6 +65,7 @@ export default function Header({ onSearch }) {
         navigate(`/products/${matchedProduct._id}`);
         setClicked(false);
         setNoProductFound(false);
+        setExpandedMobileCat(null);
       } else {
         setNoProductFound(true);
       }
@@ -128,24 +123,31 @@ export default function Header({ onSearch }) {
       </div>
     ));
 
-  // Mobile category tree
+  // Mobile category tree (full screen)
   const renderMobileCategoryTree = (categories) =>
     categories?.map((cat) => (
       <div key={cat._id} className="space-y-2">
         <Link
           to={`/category/${cat._id}`}
-          onClick={() => setClicked(false)}
-          className="block rounded-xl px-3 py-2 text-sm font-semibold text-white/95 hover:bg-white/10">
+          onClick={() => {
+            setClicked(false);
+            setExpandedMobileCat(null);
+          }}
+          className="block rounded-2xl px-4 py-3 text-sm font-semibold text-white/95 hover:bg-white/10">
           {cap(cat.name)}
         </Link>
+
         {cat.children?.length > 0 && (
           <div className="pl-3 space-y-1">
             {cat.children.map((child) => (
               <Link
                 key={child._id}
                 to={`/category/${child._id}`}
-                onClick={() => setClicked(false)}
-                className="block rounded-xl px-3 py-2 text-sm text-white/80 hover:bg-white/10">
+                onClick={() => {
+                  setClicked(false);
+                  setExpandedMobileCat(null);
+                }}
+                className="block rounded-2xl px-4 py-2 text-sm text-white/80 hover:bg-white/10">
                 {cap(child.name)}
               </Link>
             ))}
@@ -154,16 +156,21 @@ export default function Header({ onSearch }) {
       </div>
     ));
 
+  const isMenuOpen = clicked;
+
   return (
     <>
       <motion.header
         className={clsx(
           "fixed top-0 left-0 right-0 z-50 px-5 py-2 sm:py-0",
           "transition-all duration-300",
-          isScrolled
-            ? "backdrop-blur-xl bg-white/70 border-b border-neutral-200"
-            : "bg-transparent",
-          pathname === "/" && !isScrolled ? "text-white" : "text-neutral-900",
+          // ✅ keep header black while menu is open (full screen)
+          isMenuOpen
+            ? "bg-black text-white border-b border-white/10"
+            : isScrolled
+              ? "backdrop-blur-sm bg-white/70 border-b border-neutral-200 text-neutral-900"
+              : "bg-transparent",
+          pathname === "/" && !isScrolled && !isMenuOpen ? "text-white" : "",
         )}
         transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}>
         {/* Store banner */}
@@ -258,7 +265,6 @@ export default function Header({ onSearch }) {
 
           {/* Desktop right actions */}
           <div className="hidden md:flex items-center gap-3">
-            {/* User */}
             {userInfo ? (
               <Link
                 to="/profile"
@@ -284,7 +290,6 @@ export default function Header({ onSearch }) {
               </Link>
             )}
 
-            {/* Cart */}
             <Link
               to="/cart"
               className={clsx(
@@ -330,52 +335,58 @@ export default function Header({ onSearch }) {
                 "active:scale-[0.98]",
               )}
               aria-label="Menu">
-              {/* Red / orange dot */}
               <span className="h-2 w-2 rounded-full bg-gradient-to-br from-red-500 to-orange-400" />
-              {/* Menu text */}
               <span className="text-sm font-medium">Menu</span>
-
-              {/* Icon */}
               {clicked ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Fullscreen Mobile menu */}
         <AnimatePresence>
           {clicked && (
             <motion.div
               ref={menuRef}
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
               className="fixed inset-0 z-[60]">
-              {/* Backdrop */}
-              <div className="absolute inset-0 bg-black/50" onClick={() => setClicked(false)} />
+              {/* ✅ FULLSCREEN black background */}
+              <div className="absolute inset-0 bg-black" />
 
-              {/* Drawer */}
+              {/* ✅ FULLSCREEN panel (no side drawer) */}
               <motion.nav
-                initial={{ x: -320 }}
-                animate={{ x: 0 }}
-                exit={{ x: -320 }}
-                transition={{ type: "spring", stiffness: 240, damping: 26 }}
-                className="absolute left-0 top-0 h-full w-[86%] max-w-[360px] bg-neutral-950 text-white shadow-2xl">
-                <div className="p-5 border-b border-white/10 flex items-center justify-between">
-                  <Link to="/" onClick={() => setClicked(false)} className="font-semibold">
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 220, damping: 24 }}
+                className="relative h-full w-full text-white">
+                {/* top bar */}
+                <div className="px-5 pt-5 pb-4 border-b border-white/10 flex items-center justify-between">
+                  <Link
+                    to="/"
+                    onClick={() => {
+                      setClicked(false);
+                      setExpandedMobileCat(null);
+                    }}
+                    className="font-semibold">
                     WebSchema
                   </Link>
+
                   <button
                     type="button"
-                    onClick={() => setClicked(false)}
+                    onClick={() => {
+                      setClicked(false);
+                      setExpandedMobileCat(null);
+                    }}
                     className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 hover:bg-white/10"
                     aria-label="Close">
                     <X className="h-5 w-5" />
                   </button>
                 </div>
 
-                <div className="p-5 space-y-4">
-                  {/* Links */}
+                <div className="px-5 py-5 space-y-4">
                   <Link
                     to="/"
                     onClick={() => setClicked(false)}
@@ -384,7 +395,7 @@ export default function Header({ onSearch }) {
                   </Link>
 
                   {/* Categories accordion */}
-                  <div className="rounded-2xl border border-white/10 bg-white/5">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
                     <button
                       type="button"
                       onClick={() => setExpandedMobileCat((p) => (p === "all" ? null : "all"))}
@@ -406,7 +417,8 @@ export default function Header({ onSearch }) {
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           className="px-2 pb-3">
-                          <div className="max-h-[45vh] overflow-y-auto pr-2 space-y-2">
+                          {/* taller now because it’s fullscreen */}
+                          <div className="max-h-[55vh] overflow-y-auto pr-2 space-y-2">
                             {categoryTree && renderMobileCategoryTree(categoryTree)}
                           </div>
                         </motion.div>
@@ -420,6 +432,7 @@ export default function Header({ onSearch }) {
                     className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
                     About
                   </Link>
+
                   <Link
                     to="/contact"
                     onClick={() => setClicked(false)}
@@ -427,7 +440,6 @@ export default function Header({ onSearch }) {
                     Contact
                   </Link>
 
-                  {/* User */}
                   {userInfo ? (
                     <Link
                       to="/profile"
@@ -445,7 +457,7 @@ export default function Header({ onSearch }) {
                     </Link>
                   )}
 
-                  <div className="pt-4 text-center text-xs text-white/50">
+                  <div className="pt-6 text-center text-xs text-white/50">
                     © {new Date().getFullYear()} WebSchema
                   </div>
                 </div>
