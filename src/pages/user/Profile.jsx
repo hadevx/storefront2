@@ -17,7 +17,6 @@ import AddressModal from "../address/AddressModal.jsx";
 import { provinces } from "../../assets/data/addresses.js";
 import clsx from "clsx";
 import {
-  ArrowLeft,
   LogOut,
   Pencil,
   MapPin,
@@ -29,17 +28,14 @@ import {
   XCircle,
   Clock3,
   ChevronRight,
-  ShieldCheck,
-  Lock,
 } from "lucide-react";
 
 /**
- * Change requested:
- * ✅ "make address next to them"
- * - On desktop: Personal info and Address are side-by-side (2 columns).
- * - On mobile: they stack nicely.
- * - Orders stays below in a full-width card.
- * - Keeps your existing logic + modal + edits.
+ * ✅ Language logic applied (EN/AR)
+ * - Uses state.language.lang
+ * - Sets dir RTL/LTR
+ * - Translates all visible labels + toasts + order statuses
+ * - Keeps your responsive layout (Personal + Address side-by-side on desktop)
  */
 
 function Profile() {
@@ -47,6 +43,88 @@ function Profile() {
   const navigate = useNavigate();
 
   const userInfo = useSelector((state) => state.auth.userInfo);
+  const language = useSelector((state) => state.language.lang);
+
+  const t =
+    language === "ar"
+      ? {
+          logout: "تسجيل خروج",
+          logoutFailed: "فشل تسجيل الخروج",
+          updatedSuccessfully: "تم التحديث بنجاح",
+          updateFailed: "فشل التحديث",
+          phoneInvalid: "الرجاء إدخال رقم هاتف صحيح",
+          addressUpdated: "تم تحديث العنوان",
+          addressUpdateFailed: "فشل تحديث العنوان",
+          addPhone: "أضف رقم هاتفك",
+          notSet: "غير محدد",
+          save: "حفظ",
+          cancel: "إلغاء",
+          edit: "تعديل",
+          saving: "جاري الحفظ...",
+          personalInfo: "المعلومات الشخصية",
+          shippingAddress: "عنوان الشحن",
+          addAddress: "+ إضافة عنوان",
+          chooseGovernorate: "اختر المحافظة",
+          chooseCity: "اختر المنطقة",
+          block: "قطعة",
+          street: "شارع",
+          house: "منزل",
+          governorate: "المحافظة",
+          city: "المنطقة",
+          myOrders: "طلباتي",
+          noOrders: "لا توجد طلبات بعد",
+          noOrdersHint: "بعد إنشاء أول طلب، سيظهر هنا.",
+          startShopping: "ابدأ التسوق",
+          viewDetails: "عرض التفاصيل",
+          viewAllOrders: "عرض كل الطلبات",
+          totalOrders: "إجمالي الطلبات",
+          processing: "قيد المعالجة",
+          delivered: "تم التوصيل",
+          canceled: "ملغي",
+          order: "طلب",
+          total: "الإجمالي",
+          inProgress: "قيد التنفيذ",
+          orderLabel: "رقم الطلب",
+        }
+      : {
+          logout: "Logout",
+          logoutFailed: "Logout failed",
+          updatedSuccessfully: "Updated successfully",
+          updateFailed: "Update failed",
+          phoneInvalid: "Please enter a valid phone number",
+          addressUpdated: "Updated address",
+          addressUpdateFailed: "Failed to update address",
+          addPhone: "Add your phone number",
+          notSet: "Not set",
+          save: "Save",
+          cancel: "Cancel",
+          edit: "Edit",
+          saving: "Saving...",
+          personalInfo: "Personal information",
+          shippingAddress: "Shipping address",
+          addAddress: "+ Add your address",
+          chooseGovernorate: "Choose governorate",
+          chooseCity: "Choose city",
+          block: "Block",
+          street: "Street",
+          house: "House",
+          governorate: "Governorate",
+          city: "City",
+          myOrders: "My orders",
+          noOrders: "No orders yet",
+          noOrdersHint: "Once you place an order, it will show up here.",
+          startShopping: "Start shopping",
+          viewDetails: "View details",
+          viewAllOrders: "View all orders",
+          totalOrders: "Total orders",
+          processing: "Processing",
+          delivered: "Delivered",
+          canceled: "Canceled",
+          order: "Order",
+          total: "Total",
+          inProgress: "In progress",
+          orderLabel: "Order #",
+        };
 
   const { data: userAddress, refetch } = useGetAddressQuery(userInfo?._id);
   const { data: myorders } = useGetMyOrdersQuery();
@@ -91,22 +169,45 @@ function Profile() {
     };
   }, []);
 
+  // Prefill forms when user toggles edit (nice UX)
+  useEffect(() => {
+    if (editPersonal) {
+      setNewName(userInfo?.name || "");
+      setNewEmail(userInfo?.email || "");
+      setNewPhone(userInfo?.phone || "");
+    }
+  }, [editPersonal, userInfo]);
+
+  useEffect(() => {
+    if (editAddress && userAddress) {
+      setSelectedProvince(userAddress?.governorate || "");
+      setCity(userAddress?.city || "");
+      setNewBlock(userAddress?.block || "");
+      setNewStreet(userAddress?.street || "");
+      setNewHouse(userAddress?.house || "");
+
+      const province = provinces.find((p) => p.name === (userAddress?.governorate || ""));
+      setCities(province ? province.cities : []);
+    }
+  }, [editAddress, userAddress]);
+
   const handleLogout = async () => {
     try {
       await logoutApiCall().unwrap();
       dispatch(logout());
       navigate("/");
     } catch (e) {
-      toast.error("Logout failed", { position: "top-center" });
+      toast.error(t.logoutFailed, { position: "top-center" });
     }
   };
 
   const handleUpdatePersonal = async () => {
     try {
-      if (newPhone && newPhone.length !== 8) {
-        toast.error("Please enter a valid phone number");
+      if (newPhone && String(newPhone).length !== 8) {
+        toast.error(t.phoneInvalid);
         return;
       }
+
       const res = await updateUser({
         name: newName || userInfo?.name,
         email: newEmail || userInfo?.email,
@@ -114,10 +215,10 @@ function Profile() {
       }).unwrap();
 
       dispatch(setUserInfo(res));
-      toast.success("Updated successfully", { position: "top-center" });
+      toast.success(t.updatedSuccessfully, { position: "top-center" });
       setEditPersonal(false);
     } catch (error) {
-      toast.error(error?.data?.message || "Update failed");
+      toast.error(error?.data?.message || t.updateFailed);
     }
   };
 
@@ -133,9 +234,9 @@ function Profile() {
 
       refetch();
       setEditAddress(false);
-      toast.success("Updated address", { position: "top-center" });
+      toast.success(t.addressUpdated, { position: "top-center" });
     } catch (e) {
-      toast.error("Failed to update address", { position: "top-center" });
+      toast.error(t.addressUpdateFailed, { position: "top-center" });
     }
   };
 
@@ -155,13 +256,17 @@ function Profile() {
 
     const cfg = delivered
       ? {
-          label: "Delivered",
+          label: t.delivered,
           icon: CheckCircle2,
           cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
         }
       : canceled
-        ? { label: "Canceled", icon: XCircle, cls: "bg-rose-50 text-rose-700 border-rose-200" }
-        : { label: "Processing", icon: Clock3, cls: "bg-amber-50 text-amber-700 border-amber-200" };
+        ? { label: t.canceled, icon: XCircle, cls: "bg-rose-50 text-rose-700 border-rose-200" }
+        : {
+            label: t.processing,
+            icon: Clock3,
+            cls: "bg-amber-50 text-amber-700 border-amber-200",
+          };
 
     const Icon = cfg.icon;
 
@@ -197,7 +302,9 @@ function Profile() {
 
   return (
     <Layout>
-      <div className="relative overflow-x-hidden bg-gray-100">
+      <div
+        dir={language === "ar" ? "rtl" : "ltr"}
+        className="relative overflow-x-hidden bg-gray-100">
         {/* Background */}
         <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-white via-neutral-50 to-white" />
@@ -208,32 +315,6 @@ function Profile() {
         <motion.div
           transition={{ duration: 0.6 }}
           className="min-h-screen mx-auto w-full max-w-6xl mt-[70px] lg:mt-[110px] px-3 pb-16">
-          {/* Top bar */}
-          <div className="flex items-center justify-between gap-3">
-            {/*   <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 shadow-sm hover:bg-neutral-50 transition">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </button> */}
-
-            {/*  <button
-              type="button"
-              onClick={handleLogout}
-              disabled={loadingLogout}
-              className="inline-flex items-center gap-2 rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-900 active:scale-[0.99] transition">
-              {loadingLogout ? (
-                <Spinner className="border-t-transparent" />
-              ) : (
-                <>
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </>
-              )}
-            </button> */}
-          </div>
-
           {/* Header */}
           <div className="mt-6 w-full min-w-0 rounded-3xl border border-neutral-200 bg-white/80 backdrop-blur shadow-sm p-5 md:p-7">
             <div className="flex items-center justify-between gap-5 md:flex-row md:items-center md:justify-between min-w-0">
@@ -248,10 +329,11 @@ function Profile() {
                   </h1>
                   <p className="text-sm text-neutral-600 truncate">{userInfo?.email}</p>
                   <p className="text-xs text-neutral-500 mt-1 truncate">
-                    {userInfo?.phone ? `+965 ${userInfo.phone}` : "Add your phone number"}
+                    {userInfo?.phone ? `+965 ${userInfo.phone}` : t.addPhone}
                   </p>
                 </div>
               </div>
+
               <button
                 type="button"
                 onClick={handleLogout}
@@ -262,7 +344,7 @@ function Profile() {
                 ) : (
                   <>
                     <LogOut className="h-4 w-4" />
-                    Logout
+                    {t.logout}
                   </>
                 )}
               </button>
@@ -271,21 +353,21 @@ function Profile() {
             {/* Stats */}
             <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                <div className="text-xs text-neutral-500 truncate">Total orders</div>
+                <div className="text-xs text-neutral-500 truncate">{t.totalOrders}</div>
                 <div className="mt-1 text-lg font-semibold text-neutral-950">{stats.total}</div>
               </div>
               <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                <div className="text-xs text-neutral-500 truncate">Processing</div>
+                <div className="text-xs text-neutral-500 truncate">{t.processing}</div>
                 <div className="mt-1 text-lg font-semibold text-neutral-950">
                   {stats.processing}
                 </div>
               </div>
               <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                <div className="text-xs text-neutral-500 truncate">Delivered</div>
+                <div className="text-xs text-neutral-500 truncate">{t.delivered}</div>
                 <div className="mt-1 text-lg font-semibold text-neutral-950">{stats.delivered}</div>
               </div>
               <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-                <div className="text-xs text-neutral-500 truncate">Canceled</div>
+                <div className="text-xs text-neutral-500 truncate">{t.canceled}</div>
                 <div className="mt-1 text-lg font-semibold text-neutral-950">{stats.canceled}</div>
               </div>
             </div>
@@ -298,7 +380,7 @@ function Profile() {
               {/* Personal */}
               {(tab === "overview" || tab === "account") && (
                 <Card
-                  title="Personal information"
+                  title={t.personalInfo}
                   icon={UserIcon}
                   action={
                     !editPersonal ? (
@@ -307,7 +389,7 @@ function Profile() {
                         onClick={() => setEditPersonal(true)}
                         className="inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-50 transition">
                         <Pencil className="h-4 w-4" />
-                        Edit
+                        {t.edit}
                       </button>
                     ) : null
                   }>
@@ -316,7 +398,9 @@ function Profile() {
                       <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 min-w-0">
                         <UserIcon className="h-4 w-4 text-neutral-600 shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs text-neutral-500">Name</div>
+                          <div className="text-xs text-neutral-500">
+                            {language === "ar" ? "الاسم" : "Name"}
+                          </div>
                           <div className="truncate font-medium text-neutral-900">
                             {userInfo?.name}
                           </div>
@@ -326,7 +410,9 @@ function Profile() {
                       <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 min-w-0">
                         <Mail className="h-4 w-4 text-neutral-600 shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs text-neutral-500">Email</div>
+                          <div className="text-xs text-neutral-500">
+                            {language === "ar" ? "البريد الإلكتروني" : "Email"}
+                          </div>
                           <div className="truncate font-medium text-neutral-900">
                             {userInfo?.email}
                           </div>
@@ -336,9 +422,11 @@ function Profile() {
                       <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 min-w-0">
                         <Phone className="h-4 w-4 text-neutral-600 shrink-0" />
                         <div className="min-w-0">
-                          <div className="text-xs text-neutral-500">Phone</div>
+                          <div className="text-xs text-neutral-500">
+                            {language === "ar" ? "الهاتف" : "Phone"}
+                          </div>
                           <div className="truncate font-medium text-neutral-900">
-                            {userInfo?.phone ? `+965 ${userInfo.phone}` : "Not set"}
+                            {userInfo?.phone ? `+965 ${userInfo.phone}` : t.notSet}
                           </div>
                         </div>
                       </div>
@@ -362,7 +450,10 @@ function Profile() {
                         type="number"
                         value={newPhone}
                         onChange={(e) => setNewPhone(e.target.value)}
-                        placeholder={userInfo?.phone || "Phone (8 digits)"}
+                        placeholder={
+                          userInfo?.phone ||
+                          (language === "ar" ? "الهاتف (8 أرقام)" : "Phone (8 digits)")
+                        }
                         className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
                       />
 
@@ -371,13 +462,13 @@ function Profile() {
                           type="button"
                           onClick={handleUpdatePersonal}
                           className="rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-900 transition">
-                          Save
+                          {t.save}
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditPersonal(false)}
                           className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition">
-                          Cancel
+                          {t.cancel}
                         </button>
                       </div>
                     </div>
@@ -388,7 +479,7 @@ function Profile() {
               {/* Address */}
               {(tab === "overview" || tab === "address") && (
                 <Card
-                  title="Shipping address"
+                  title={t.shippingAddress}
                   icon={MapPin}
                   action={
                     userAddress && !editAddress ? (
@@ -397,7 +488,7 @@ function Profile() {
                         onClick={() => setEditAddress(true)}
                         className="inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-50 transition">
                         <Pencil className="h-4 w-4" />
-                        Edit
+                        {t.edit}
                       </button>
                     ) : null
                   }>
@@ -406,16 +497,16 @@ function Profile() {
                       type="button"
                       onClick={() => setIsModalOpen(true)}
                       className="w-full rounded-2xl border border-dashed border-neutral-300 bg-white px-4 py-4 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition">
-                      + Add your address
+                      {t.addAddress}
                     </button>
                   ) : !editAddress ? (
                     <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 text-sm text-neutral-700 space-y-2 min-w-0">
                       {[
-                        ["Governorate", userAddress?.governorate],
-                        ["City", userAddress?.city],
-                        ["Block", userAddress?.block],
-                        ["Street", userAddress?.street],
-                        ["House", userAddress?.house],
+                        [t.governorate, userAddress?.governorate],
+                        [t.city, userAddress?.city],
+                        [t.block, userAddress?.block],
+                        [t.street, userAddress?.street],
+                        [t.house, userAddress?.house],
                       ].map(([k, v]) => (
                         <div key={k} className="flex items-center justify-between gap-4 min-w-0">
                           <span className="text-xs text-neutral-500">{k}</span>
@@ -429,7 +520,7 @@ function Profile() {
                         value={selectedProvince}
                         onChange={handleProvinceChange}
                         className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10">
-                        <option value="">Choose governorate</option>
+                        <option value="">{t.chooseGovernorate}</option>
                         {provinces.map((p) => (
                           <option key={p.name} value={p.name}>
                             {p.name}
@@ -441,7 +532,7 @@ function Profile() {
                         value={city}
                         onChange={handleCityChange}
                         className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10">
-                        <option value="">Choose city</option>
+                        <option value="">{t.chooseCity}</option>
                         {cities.map((c, i) => (
                           <option key={i} value={c}>
                             {c}
@@ -453,13 +544,13 @@ function Profile() {
                         <input
                           value={newBlock}
                           onChange={(e) => setNewBlock(e.target.value)}
-                          placeholder="Block"
+                          placeholder={t.block}
                           className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
                         />
                         <input
                           value={newHouse}
                           onChange={(e) => setNewHouse(e.target.value)}
-                          placeholder="House"
+                          placeholder={t.house}
                           className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
                         />
                       </div>
@@ -467,7 +558,7 @@ function Profile() {
                       <input
                         value={newStreet}
                         onChange={(e) => setNewStreet(e.target.value)}
-                        placeholder="Street"
+                        placeholder={t.street}
                         className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
                       />
 
@@ -477,13 +568,13 @@ function Profile() {
                           onClick={handleUpdateAddress}
                           disabled={loadingAddress}
                           className="rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-900 transition disabled:opacity-60">
-                          {loadingAddress ? "Saving..." : "Save"}
+                          {loadingAddress ? t.saving : t.save}
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditAddress(false)}
                           className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition">
-                          Cancel
+                          {t.cancel}
                         </button>
                       </div>
                     </div>
@@ -494,18 +585,16 @@ function Profile() {
 
             {/* Orders section below (full width) */}
             {(tab === "overview" || tab === "orders") && (
-              <Card title={`My orders (${stats.total})`} icon={Package} action={null}>
+              <Card title={`${t.myOrders} (${stats.total})`} icon={Package} action={null}>
                 {stats.total === 0 ? (
                   <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-10 text-center">
-                    <p className="font-semibold text-neutral-900">No orders yet</p>
-                    <p className="mt-1 text-sm text-neutral-500">
-                      Once you place an order, it will show up here.
-                    </p>
+                    <p className="font-semibold text-neutral-900">{t.noOrders}</p>
+                    <p className="mt-1 text-sm text-neutral-500">{t.noOrdersHint}</p>
                     <button
                       type="button"
                       onClick={() => navigate("/")}
                       className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-neutral-950 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-900 transition">
-                      Start shopping
+                      {t.startShopping}
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
@@ -520,10 +609,11 @@ function Profile() {
                           <div className="flex items-start justify-between gap-3 min-w-0">
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-neutral-900 truncate">
-                                Order #{String(order?._id).slice(-6).toUpperCase()}
+                                {t.orderLabel}
+                                {String(order?._id).slice(-6).toUpperCase()}
                               </p>
                               <p className="mt-1 text-xs text-neutral-500">
-                                {order?.createdAt?.substring(0, 10)} • Total{" "}
+                                {order?.createdAt?.substring(0, 10)} • {t.total}{" "}
                                 <span className="font-semibold text-neutral-900">
                                   {order?.totalPrice?.toFixed(3)} KD
                                 </span>
@@ -537,15 +627,15 @@ function Profile() {
                               type="button"
                               onClick={() => navigate(`/order/${order?._id}`)}
                               className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-900">
-                              View details <ChevronRight className="h-4 w-4" />
+                              {t.viewDetails} <ChevronRight className="h-4 w-4" />
                             </button>
 
                             <span className="text-xs text-neutral-500 whitespace-nowrap">
                               {order?.isDelivered
-                                ? "Delivered"
+                                ? t.delivered
                                 : order?.isCanceled
-                                  ? "Canceled"
-                                  : "In progress"}
+                                  ? t.canceled
+                                  : t.inProgress}
                             </span>
                           </div>
                         </div>
@@ -556,7 +646,7 @@ function Profile() {
                         type="button"
                         onClick={() => setTab("orders")}
                         className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 transition">
-                        View all orders
+                        {t.viewAllOrders}
                       </button>
                     )}
                   </div>

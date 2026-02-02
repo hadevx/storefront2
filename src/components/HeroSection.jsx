@@ -1,56 +1,96 @@
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import { PackageCheck, Rocket, ShieldCheck } from "lucide-react"; // Added PackageCheck, Rocket, and ShieldCheck icon imports
+import { useMemo, useRef } from "react";
+import { useSelector } from "react-redux";
+import { PackageCheck, Rocket, ShieldCheck } from "lucide-react";
 import Reveal from "./Reveal";
 import BlurPanel from "./BlurPanel";
 import test2 from "/images/img1.webp";
 
 export function HeroSection() {
+  const language = useSelector((state) => state.language.lang);
+
+  const t = useMemo(() => {
+    return language === "ar"
+      ? {
+          line1: "ارتقِ بإطلالتك",
+          line2: "بأزياء خالدة.",
+          desc: "مصممة في",
+          desc2: "— ملابس متعددة الاستخدام لحياة عصرية.",
+          fast: "توصيل سريع",
+          kuwait: "مقرنا الكويت",
+          offers: "عروض حصرية",
+        }
+      : {
+          line1: "Elevate your style",
+          line2: "with timeless fashion.",
+          desc: "Designed in",
+          desc2: "— versatile clothes for modern lives.",
+          fast: "Fast delivery",
+          kuwait: "Based in Kuwait",
+          offers: "Exclusive offers",
+        };
+  }, [language]);
+
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
   });
 
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1.05, 0.95]); // Reduced hero image shrink from 15% to 5%
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1.05, 0.95]);
   const imageY = useTransform(scrollYProgress, [0, 1], [0, -50]);
   const contentY = useTransform(scrollYProgress, [0, 1], [0, 100]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
+  // ✅ Keep your animated text for English only (Arabic text breaks with char split)
   const AnimatedText = ({ text, delay = 0 }) => {
+    if (language === "ar") {
+      return (
+        <motion.span
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay, ease: [0.21, 0.47, 0.32, 0.98] }}>
+          {text}
+        </motion.span>
+      );
+    }
+
     return (
       <span>
-        {text.split("").map((char, index) => (
-          <motion.span
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.5,
-              delay: delay + index * 0.03,
-              ease: [0.21, 0.47, 0.32, 0.98],
-            }}
-            style={{ display: char === " " ? "inline" : "inline-block" }}>
-            {char === " " ? "\u00A0" : char}
-          </motion.span>
-        ))}
+        {String(text)
+          .split("")
+          .map((char, index) => (
+            <motion.span
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.5,
+                delay: delay + index * 0.03,
+                ease: [0.21, 0.47, 0.32, 0.98],
+              }}
+              style={{ display: char === " " ? "inline" : "inline-block" }}>
+              {char === " " ? "\u00A0" : char}
+            </motion.span>
+          ))}
       </span>
     );
   };
 
   return (
-    <section ref={containerRef} className="relative  h-screen overflow-hidden">
-      {/* Background Image with Cinematic Effects */}
+    <section
+      ref={containerRef}
+      dir={language === "ar" ? "rtl" : "ltr"}
+      className="relative h-screen overflow-hidden">
+      {/* Background Image */}
       <motion.div
         className="absolute inset-0"
         style={{ scale: imageScale, y: imageY }}
         initial={{ scale: 1.05 }}
         animate={{ scale: 1 }}
         transition={{ duration: 1.2, ease: [0.21, 0.47, 0.32, 0.98] }}>
-        {/* Use a wrapper for sizing if you want "fill"-like behavior */}
         <div className="absolute inset-0">
-          <img src={test2} alt="Test" className="w-full h-full object-cover object-[50%_70%]" />
-
+          <img src={test2} alt="Hero" className="w-full h-full object-cover object-[50%_70%]" />
           <div className="absolute inset-0 bg-black/40" />
         </div>
       </motion.div>
@@ -62,10 +102,10 @@ export function HeroSection() {
         <div className="container-custom text-center text-white">
           <Reveal>
             <h1 className="text-4xl md:text-7xl lg:text-8xl xl:text-9xl font-bold leading-none tracking-tight mb-6">
-              <AnimatedText text="Elevate your style" delay={0.5} />
+              <AnimatedText text={t.line1} delay={0.5} />
               <br />
               <span className="italic font-light">
-                <AnimatedText text="with timeless fashion." delay={1.1} />
+                <AnimatedText text={t.line2} delay={1.1} />
               </span>
             </h1>
           </Reveal>
@@ -76,13 +116,13 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7, ease: [0.21, 0.47, 0.32, 0.98] }}>
-              Designed in{" "}
+              {t.desc}{" "}
               <img
                 src="https://flagcdn.com/w20/kw.png"
                 alt="Kuwait Flag"
                 className="w-5 h-5 inline-block"
               />{" "}
-              — versatile clothes for modern lives.
+              {t.desc2}
             </motion.p>
           </Reveal>
         </div>
@@ -95,18 +135,18 @@ export function HeroSection() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 1.2, ease: [0.21, 0.47, 0.32, 0.98] }}>
         <BlurPanel className="mx-6 mb-6 px-6 py-4 bg-black/24 backdrop-blur-md border-white/20">
-          <div className="flex items-center justify-center gap-6 text-white/90">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-white/90">
             <div className="flex items-center gap-2">
               <PackageCheck className="w-4 h-4 text-green-400" />
-              <span className="text-sm">Fast delivery</span>
+              <span className="text-sm">{t.fast}</span>
             </div>
             <div className="flex items-center gap-2">
               <Rocket className="w-4 h-4 text-amber-400" />
-              <span className="text-sm">Based in Kuwait</span>
+              <span className="text-sm">{t.kuwait}</span>
             </div>
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-blue-400" />
-              <span className="text-sm">Exclusive offers</span>
+              <span className="text-sm">{t.offers}</span>
             </div>
           </div>
         </BlurPanel>

@@ -4,42 +4,90 @@ import { Instagram, Twitter, Facebook } from "lucide-react";
 import webschema from "/images/webschema.png";
 import { Link, useLocation } from "react-router-dom";
 import clsx from "clsx";
+import { useSelector } from "react-redux";
 
 export default function Footer() {
   const { pathname } = useLocation();
   const currentYear = new Date().getFullYear();
 
-  // Minimal, essential links only
+  const language = useSelector((state) => state.language.lang);
+
+  const t =
+    language === "ar"
+      ? {
+          tagline: "بسيط. فاخر. موثوق.",
+          desc: "قطع مختارة بعناية مع تجربة تسوّق سلسة.",
+          shop: "التسوق",
+          support: "الدعم",
+          legal: "قانوني",
+          allProducts: "كل المنتجات",
+          newArrivals: "وصل حديثًا",
+          contact: "تواصل معنا",
+          shipping: "الشحن",
+          returns: "الاستبدال والإرجاع",
+          privacy: "الخصوصية",
+          terms: "الشروط",
+          rights: "جميع الحقوق محفوظة.",
+          createdBy: "تم الإنشاء بواسطة",
+          instagram: "إنستغرام",
+          twitter: "تويتر",
+          facebook: "فيسبوك",
+        }
+      : {
+          tagline: "Simple. Premium. Reliable.",
+          desc: "Thoughtfully curated pieces with a smooth shopping experience.",
+          shop: "Shop",
+          support: "Support",
+          legal: "Legal",
+          allProducts: "All Products",
+          newArrivals: "New Arrivals",
+          contact: "Contact",
+          shipping: "Shipping",
+          returns: "Returns",
+          privacy: "Privacy",
+          terms: "Terms",
+          rights: "All rights reserved.",
+          createdBy: "Created by",
+          instagram: "Instagram",
+          twitter: "Twitter",
+          facebook: "Facebook",
+        };
+
+  // Minimal, essential links only (localized)
   const footerLinks = useMemo(
     () => ({
-      Shop: [
-        { name: "All Products", href: "/all-products" },
-        { name: "New Arrivals", href: "/all-products" },
+      [t.shop]: [
+        { name: t.allProducts, href: "/all-products" },
+        { name: t.newArrivals, href: "/all-products?sort=new" },
       ],
-      Support: [
-        { name: "Contact", href: "/contact" },
-        { name: "Shipping", href: "/shipping" },
-        { name: "Returns", href: "/returns" },
+      [t.support]: [
+        { name: t.contact, href: "/contact" },
+        { name: t.shipping, href: "/shipping" },
+        { name: t.returns, href: "/returns" },
       ],
-      Legal: [
-        { name: "Privacy", href: "/privacy" },
-        { name: "Terms", href: "/terms" },
+      [t.legal]: [
+        { name: t.privacy, href: "/privacy" },
+        { name: t.terms, href: "/terms" },
       ],
     }),
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [language],
   );
 
   const socialLinks = useMemo(
     () => [
-      { name: "Instagram", icon: Instagram, href: "#" },
-      { name: "Twitter", icon: Twitter, href: "#" },
-      { name: "Facebook", icon: Facebook, href: "#" },
+      { name: t.instagram, icon: Instagram, href: "#" },
+      { name: t.twitter, icon: Twitter, href: "#" },
+      { name: t.facebook, icon: Facebook, href: "#" },
     ],
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [language],
   );
 
   return (
-    <footer className={clsx(pathname === "/profile" && "hidden")}>
+    <footer
+      dir={language === "ar" ? "rtl" : "ltr"}
+      className={clsx(pathname === "/profile" && "hidden")}>
       <div className="relative p-5 sm:p-0 overflow-hidden border-t border-neutral-200 bg-neutral-950 text-white">
         {/* soft glow */}
         <div className="pointer-events-none absolute inset-0">
@@ -60,13 +108,11 @@ export default function Footer() {
                 <div className="flex items-center gap-3">
                   <div>
                     <h3 className="text-lg font-semibold tracking-tight">WebSchema</h3>
-                    <p className="text-xs text-white/60">Simple. Premium. Reliable.</p>
+                    <p className="text-xs text-white/60">{t.tagline}</p>
                   </div>
                 </div>
 
-                <p className="mt-4 text-sm text-white/70 leading-relaxed">
-                  Thoughtfully curated pieces with a smooth shopping experience.
-                </p>
+                <p className="mt-4 text-sm text-white/70 leading-relaxed">{t.desc}</p>
 
                 <div className="mt-5 flex items-center gap-2">
                   {socialLinks.map((social) => (
@@ -122,14 +168,16 @@ export default function Footer() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.12 }}>
-            <p className="text-sm text-white/60">© {currentYear} WebSchema. All rights reserved.</p>
+            <p className="text-sm text-white/60">
+              © {currentYear} WebSchema. {t.rights}
+            </p>
 
             <a
               href="https://webschema.online"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white transition">
-              <span>Created by</span>
+              <span>{t.createdBy}</span>
               <span className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
                 <img
                   src={webschema}

@@ -1,13 +1,55 @@
-import { ShoppingCart, Menu, X, User as UserIconSvg, ChevronDown } from "lucide-react";
+import { ShoppingCart, Menu, X, User as UserIconSvg, ChevronDown, Globe } from "lucide-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import clsx from "clsx";
 import { useGetCategoriesTreeQuery, useGetProductsQuery } from "../redux/queries/productApi";
 import { useGetStoreStatusQuery } from "../redux/queries/maintenanceApi";
+import { toggleLang } from "../redux/slices/languageSlice";
 
 export default function Header({ onSearch }) {
+  const dispatch = useDispatch();
+
+  // ✅ language from redux
+  const language = useSelector((state) => state.language.lang);
+
+  const t = useMemo(() => {
+    return language === "ar"
+      ? {
+          home: "الرئيسية",
+          categories: "الفئات",
+          about: "من نحن",
+          contact: "تواصل معنا",
+          login: "تسجيل الدخول",
+          myAccount: "حسابي",
+          close: "إغلاق",
+          browseCategories: "تصفح الفئات",
+          browseHint: "استكشف مجموعات مختارة لك.",
+          tip: "نصيحة: استخدم البحث للعثور على المنتجات بسرعة",
+          viewAllProducts: "عرض كل المنتجات →",
+          menu: "القائمة",
+          switchTo: "English",
+          logo: "WebSchema",
+        }
+      : {
+          home: "Home",
+          categories: "Categories",
+          about: "About",
+          contact: "Contact",
+          login: "Login",
+          myAccount: "My account",
+          close: "Close",
+          browseCategories: "Browse categories",
+          browseHint: "Explore collections curated for you.",
+          tip: "Tip: Use search to find items fast",
+          viewAllProducts: "View all products →",
+          menu: "Menu",
+          switchTo: "العربية",
+          logo: "WebSchema",
+        };
+  }, [language]);
+
   const [clicked, setClicked] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [noProductFound, setNoProductFound] = useState(false);
@@ -28,7 +70,7 @@ export default function Header({ onSearch }) {
 
   const menuRef = useRef(null);
 
-  // close on outside click (keep, but full screen menu mostly uses backdrop click)
+  // close on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -123,7 +165,7 @@ export default function Header({ onSearch }) {
       </div>
     ));
 
-  // Mobile category tree (full screen)
+  // Mobile category tree
   const renderMobileCategoryTree = (categories) =>
     categories?.map((cat) => (
       <div key={cat._id} className="space-y-2">
@@ -161,10 +203,10 @@ export default function Header({ onSearch }) {
   return (
     <>
       <motion.header
+        dir={language === "ar" ? "rtl" : "ltr"}
         className={clsx(
           "fixed top-0 left-0 right-0 z-50 px-2 md:px-0 py-2 sm:py-0",
           "transition-all duration-300",
-          // ✅ keep header black while menu is open (full screen)
           isMenuOpen
             ? "bg-black text-white border-b border-white/10"
             : isScrolled
@@ -183,13 +225,13 @@ export default function Header({ onSearch }) {
         <div className="container-custom h-14 md:h-16 flex items-center justify-between px-2 md:px-10">
           {/* Left: Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-base md:text-lg font-semibold tracking-tight">WebSchema</span>
+            <span className="text-base md:text-lg font-semibold tracking-tight">{t.logo}</span>
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-7">
             <Link to="/" className="text-sm font-medium hover:opacity-70">
-              Home
+              {t.home}
             </Link>
 
             {/* Categories mega */}
@@ -198,7 +240,7 @@ export default function Header({ onSearch }) {
                 type="button"
                 onClick={() => setExpandedCategoryId((p) => (p === "all" ? null : "all"))}
                 className="text-sm font-medium hover:opacity-70 inline-flex items-center gap-1">
-                Categories
+                {t.categories}
                 <ChevronDown
                   size={16}
                   className={clsx(
@@ -215,22 +257,23 @@ export default function Header({ onSearch }) {
                     animate={{ opacity: 1, y: 12, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute left-0 top-full w-[760px] rounded-3xl border border-neutral-200 bg-white shadow-2xl overflow-hidden">
+                    className={clsx(
+                      "absolute top-full w-[760px] rounded-3xl border border-neutral-200 bg-white shadow-2xl overflow-hidden",
+                      language === "ar" ? "right-0" : "left-0",
+                    )}>
                     <div className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-semibold text-neutral-900">
-                            Browse categories
+                            {t.browseCategories}
                           </p>
-                          <p className="text-xs text-neutral-500 mt-1">
-                            Explore collections curated for you.
-                          </p>
+                          <p className="text-xs text-neutral-500 mt-1">{t.browseHint}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setExpandedCategoryId(null)}
                           className="rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-neutral-50">
-                          Close
+                          {t.close}
                         </button>
                       </div>
 
@@ -240,14 +283,12 @@ export default function Header({ onSearch }) {
                     </div>
 
                     <div className="border-t border-neutral-200 px-6 py-4 flex items-center justify-between">
-                      <span className="text-xs text-neutral-500">
-                        Tip: Use search to find items fast
-                      </span>
+                      <span className="text-xs text-neutral-500">{t.tip}</span>
                       <Link
                         to="/all-products"
                         onClick={() => setExpandedCategoryId(null)}
                         className="text-xs font-semibold text-neutral-900 hover:opacity-70">
-                        View all products →
+                        {t.viewAllProducts}
                       </Link>
                     </div>
                   </motion.div>
@@ -256,15 +297,29 @@ export default function Header({ onSearch }) {
             </div>
 
             <Link to="/about" className="text-sm font-medium hover:opacity-70">
-              About
+              {t.about}
             </Link>
             <Link to="/contact" className="text-sm font-medium hover:opacity-70">
-              Contact
+              {t.contact}
             </Link>
           </nav>
 
           {/* Desktop right actions */}
           <div className="hidden md:flex items-center gap-3">
+            {/* ✅ Lang toggle */}
+            <button
+              type="button"
+              onClick={() => dispatch(toggleLang())}
+              className={clsx(
+                "inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition",
+                pathname === "/" && !isScrolled
+                  ? "border-white/20 bg-white/10 text-white hover:bg-white/15"
+                  : "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50",
+              )}>
+              <Globe className="h-4 w-4" />
+              <span>{t.switchTo}</span>
+            </button>
+
             {userInfo ? (
               <Link
                 to="/profile"
@@ -286,7 +341,7 @@ export default function Header({ onSearch }) {
                     ? "bg-white text-neutral-900 hover:bg-white/90"
                     : "bg-neutral-950 text-white hover:bg-neutral-900",
                 )}>
-                Login
+                {t.login}
               </Link>
             )}
 
@@ -326,6 +381,20 @@ export default function Header({ onSearch }) {
               )}
             </Link>
 
+            {/* ✅ Mobile lang toggle */}
+            <button
+              type="button"
+              onClick={() => dispatch(toggleLang())}
+              className={clsx(
+                "inline-flex h-10 items-center justify-center gap-2 rounded-2xl border px-3 transition",
+                pathname === "/" && !isScrolled
+                  ? "border-white/20 bg-white/10 text-white"
+                  : "border-neutral-200 bg-white text-neutral-900",
+              )}>
+              <Globe className="h-4 w-4" />
+              <span className="text-sm font-medium">{t.switchTo}</span>
+            </button>
+
             <button
               type="button"
               onClick={() => setClicked((p) => !p)}
@@ -336,7 +405,7 @@ export default function Header({ onSearch }) {
               )}
               aria-label="Menu">
               <span className="h-2 w-2 rounded-full bg-gradient-to-br from-red-500 to-orange-400" />
-              <span className="text-sm font-medium">Menu</span>
+              <span className="text-sm font-medium">{t.menu}</span>
               {clicked ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
@@ -352,16 +421,15 @@ export default function Header({ onSearch }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
               className="fixed inset-0 z-[60]">
-              {/* ✅ FULLSCREEN black background */}
               <div className="absolute inset-0 bg-black" />
 
-              {/* ✅ FULLSCREEN panel (no side drawer) */}
               <motion.nav
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 20, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 220, damping: 24 }}
-                className="relative h-full w-full text-white">
+                className="relative h-full w-full text-white"
+                dir={language === "ar" ? "rtl" : "ltr"}>
                 {/* top bar */}
                 <div className="px-5 pt-5 pb-4 border-b border-white/10 flex items-center justify-between">
                   <Link
@@ -371,7 +439,7 @@ export default function Header({ onSearch }) {
                       setExpandedMobileCat(null);
                     }}
                     className="font-semibold">
-                    WebSchema
+                    {t.logo}
                   </Link>
 
                   <button
@@ -391,7 +459,7 @@ export default function Header({ onSearch }) {
                     to="/"
                     onClick={() => setClicked(false)}
                     className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
-                    Home
+                    {t.home}
                   </Link>
 
                   {/* Categories accordion */}
@@ -400,7 +468,7 @@ export default function Header({ onSearch }) {
                       type="button"
                       onClick={() => setExpandedMobileCat((p) => (p === "all" ? null : "all"))}
                       className="w-full px-4 py-3 flex items-center justify-between text-sm font-semibold">
-                      Categories
+                      {t.categories}
                       <ChevronDown
                         size={18}
                         className={clsx(
@@ -417,7 +485,6 @@ export default function Header({ onSearch }) {
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           className="px-2 pb-3">
-                          {/* taller now because it’s fullscreen */}
                           <div className="max-h-[55vh] overflow-y-auto pr-2 space-y-2">
                             {categoryTree && renderMobileCategoryTree(categoryTree)}
                           </div>
@@ -430,14 +497,14 @@ export default function Header({ onSearch }) {
                     to="/about"
                     onClick={() => setClicked(false)}
                     className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
-                    About
+                    {t.about}
                   </Link>
 
                   <Link
                     to="/contact"
                     onClick={() => setClicked(false)}
                     className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
-                    Contact
+                    {t.contact}
                   </Link>
 
                   {userInfo ? (
@@ -446,19 +513,19 @@ export default function Header({ onSearch }) {
                       onClick={() => setClicked(false)}
                       className="mt-2 inline-flex w-full items-center gap-2 rounded-2xl bg-white text-neutral-900 px-4 py-3 text-sm font-semibold hover:bg-white/90">
                       <UserIconSvg className="h-4 w-4" />
-                      My account
+                      {t.myAccount}
                     </Link>
                   ) : (
                     <Link
                       to="/login"
                       onClick={() => setClicked(false)}
                       className="mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-white text-neutral-900 px-4 py-3 text-sm font-semibold hover:bg-white/90">
-                      Login
+                      {t.login}
                     </Link>
                   )}
 
                   <div className="pt-6 text-center text-xs text-white/50">
-                    © {new Date().getFullYear()} WebSchema
+                    © {new Date().getFullYear()} {t.logo}
                   </div>
                 </div>
               </motion.nav>

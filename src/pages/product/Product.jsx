@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import Layout from "../../Layout";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -527,28 +527,73 @@ function Product() {
               {/* END right */}
             </div>
 
-            {/* ✅ RELATED PRODUCTS - SAME CATEGORY ONLY */}
+            {/* ✅ RELATED PRODUCTS - SAME CATEGORY ONLY (Image + Name + Price only) */}
             {categoryId ? (
               <div className="mt-10 lg:mt-14">
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <h3 className="text-xl sm:text-2xl font-semibold text-neutral-950">
-                      Related products
+                      You may also like
                     </h3>
                     <p className="mt-1 text-sm text-neutral-600">More items in the same category</p>
                   </div>
                 </div>
 
-                <div className="mt-5 rounded-3xl border border-neutral-200 bg-white/80 backdrop-blur shadow-sm p-4 sm:p-6">
+                <div className="mt-5 rounded-3xl  bg-white/80 backdrop-blur shadow-sm p-4 sm:p-6">
                   {loadingRelated ? (
                     <Loader />
                   ) : relatedProducts.length > 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
-                      {relatedProducts.map((p) => (
-                        <div key={p._id} className="rounded-3xl">
-                          <ProductCard product={p} categoryTree={categoryTree || []} />
-                        </div>
-                      ))}
+                      {relatedProducts.map((p) => {
+                        const img =
+                          p?.variants?.[0]?.images?.[0]?.url ||
+                          p?.image?.[0]?.url ||
+                          "/placeholder.svg";
+
+                        const price = p?.hasDiscount ? p?.discountedPrice : p?.price;
+
+                        return (
+                          <Link
+                            key={p._id}
+                            to={`/products/${p._id}`}
+                            className="group rounded-3xl border border-neutral-200 bg-white overflow-hidden hover:shadow-md transition">
+                            {/* Image */}
+                            <div className="aspect-[4/5] bg-neutral-100 overflow-hidden">
+                              <img
+                                src={img}
+                                alt={p.name}
+                                className="h-full w-full object-cover group-hover:scale-[1.03] transition duration-300"
+                                loading="lazy"
+                                draggable={false}
+                              />
+                            </div>
+
+                            {/* Name + Price */}
+                            <div className="p-3">
+                              <div className="truncate text-sm font-semibold text-neutral-900">
+                                {p.name}
+                              </div>
+
+                              <div className="mt-1 flex items-center gap-2">
+                                {p?.hasDiscount ? (
+                                  <>
+                                    <span className="text-xs text-neutral-400 line-through">
+                                      {Number(p.price || 0).toFixed(3)} KD
+                                    </span>
+                                    <span className="text-sm font-extrabold text-emerald-600">
+                                      {Number(p.discountedPrice || 0).toFixed(3)} KD
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-sm font-extrabold text-neutral-900">
+                                    {Number(price || 0).toFixed(3)} KD
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center">

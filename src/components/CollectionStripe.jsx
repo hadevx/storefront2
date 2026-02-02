@@ -8,8 +8,9 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Layers } from "lucide-react";
 import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
 
-const capitalizeLabel = (name = "") =>
+const capitalizeLabelEn = (name = "") =>
   name
     .split(" ")
     .filter(Boolean)
@@ -17,6 +18,42 @@ const capitalizeLabel = (name = "") =>
     .join(" ");
 
 export function CollectionStrip() {
+  const language = useSelector((state) => state.language.lang);
+
+  const t = useMemo(() => {
+    return language === "ar"
+      ? {
+          pill: "تصفح الفئات",
+          title1: "مجموعات",
+          title2: "حسب الفئة",
+          desc: "اسحب لاستعراض الفئات وانتقل مباشرة إلى ستايلك المفضل.",
+          prev: "السابق",
+          next: "التالي",
+          items: "منتج",
+          viewCollection: "عرض المجموعة",
+          ctaTop: "اكتشف المزيد",
+          ctaTitle: "اعثر على إطلالتك المفضلة القادمة",
+          ctaDesc: "تصفح المتجر بالكامل مع أحدث الإضافات والأكثر مبيعًا والفئات المختارة.",
+          newArrivals: "وصل حديثًا",
+          shopAll: "تسوق الكل",
+        }
+      : {
+          pill: "Browse categories",
+          title1: "Collections",
+          title2: "by category",
+          desc: "Swipe through categories and jump straight into your favorite styles.",
+          prev: "Previous",
+          next: "Next",
+          items: "items",
+          viewCollection: "View collection",
+          ctaTop: "Discover what’s next",
+          ctaTitle: "Find your next favorite look",
+          ctaDesc: "Explore the full shop with new arrivals, best sellers, and curated categories.",
+          newArrivals: "New arrivals",
+          shopAll: "Shop all",
+        };
+  }, [language]);
+
   const { data: products } = useGetAllProductsQuery();
   const { data: categoryTree } = useGetCategoriesTreeQuery();
   const { data: mainCategoriesWithCounts } = useGetMainCategoriesWithCountsQuery();
@@ -25,6 +62,9 @@ export function CollectionStrip() {
   const scrollRef = useRef(null);
   const [active, setActive] = useState(0);
 
+  const ArrowForward = language === "ar" ? ArrowLeft : ArrowRight;
+  const ArrowBack = language === "ar" ? ArrowRight : ArrowLeft;
+
   const categories = useMemo(() => {
     const tree = Array.isArray(categoryTree) ? categoryTree : [];
     const prods = Array.isArray(products) ? products : [];
@@ -32,8 +72,8 @@ export function CollectionStrip() {
 
     return tree
       .map((category) => {
-        const name = category?.name || "Unknown";
-        const label = capitalizeLabel(name);
+        const name = category?.name || (language === "ar" ? "غير معروف" : "Unknown");
+        const label = language === "en" ? capitalizeLabelEn(name) : String(name);
 
         const count = counts.find((c) => String(c._id) === String(category._id))?.count || 0;
 
@@ -43,7 +83,7 @@ export function CollectionStrip() {
         return { id: category._id, label, count, image };
       })
       .filter(Boolean);
-  }, [categoryTree, products, mainCategoriesWithCounts]);
+  }, [categoryTree, products, mainCategoriesWithCounts, language]);
 
   const scrollByCard = (dir = 1) => {
     const el = scrollRef.current;
@@ -51,7 +91,10 @@ export function CollectionStrip() {
 
     const card = el.querySelector("[data-card]");
     const step = card ? card.getBoundingClientRect().width + 16 : 320;
-    el.scrollBy({ left: dir * step, behavior: "smooth" });
+
+    // ✅ Flip scroll direction in RTL so arrows feel natural
+    const rtlFactor = language === "ar" ? -1 : 1;
+    el.scrollBy({ left: rtlFactor * dir * step, behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -89,8 +132,11 @@ export function CollectionStrip() {
   };
 
   return (
-    <section className="relative px-2 py-16 lg:py-24 overflow-hidden" id="collections">
-      {/* Modern background (same vibe as FeaturedProducts) */}
+    <section
+      dir={language === "ar" ? "rtl" : "ltr"}
+      className="relative px-2 py-16 lg:py-24 overflow-hidden"
+      id="collections">
+      {/* Modern background */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-b from-white via-neutral-50 to-white" />
         <div className="absolute left-1/2 top-[-120px] h-[420px] w-[680px] -translate-x-1/2 rounded-full bg-neutral-200/55 blur-3xl" />
@@ -103,19 +149,16 @@ export function CollectionStrip() {
           {/* Header */}
           <div className="mb-8 lg:mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              {/* ✅ "Just dropped" style pill for categories */}
               <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-sm text-neutral-700 shadow-sm">
                 <Layers className="h-4 w-4" />
-                Browse categories
+                {t.pill}
               </div>
 
               <h2 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-neutral-950">
-                Collections <span className="italic font-light text-neutral-800">by category</span>
+                {t.title1} <span className="italic font-light text-neutral-800">{t.title2}</span>
               </h2>
 
-              <p className="mt-3 text-base md:text-lg text-neutral-600 leading-relaxed">
-                Swipe through categories and jump straight into your favorite styles.
-              </p>
+              <p className="mt-3 text-base md:text-lg text-neutral-600 leading-relaxed">{t.desc}</p>
             </div>
 
             {/* Arrows (desktop) */}
@@ -124,16 +167,16 @@ export function CollectionStrip() {
                 type="button"
                 onClick={() => scrollByCard(-1)}
                 className="h-10 w-10 rounded-2xl border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 transition"
-                aria-label="Previous">
-                <ArrowLeft className="mx-auto h-4 w-4" />
+                aria-label={t.prev}>
+                <ArrowBack className="mx-auto h-4 w-4" />
               </button>
 
               <button
                 type="button"
                 onClick={() => scrollByCard(1)}
                 className="h-10 w-10 rounded-2xl border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 transition"
-                aria-label="Next">
-                <ArrowRight className="mx-auto h-4 w-4" />
+                aria-label={t.next}>
+                <ArrowForward className="mx-auto h-4 w-4" />
               </button>
             </div>
           </div>
@@ -146,8 +189,7 @@ export function CollectionStrip() {
 
             <div
               ref={scrollRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth pb-2
-                         snap-x snap-mandatory
+              className="flex gap-4 overflow-x-auto scroll-smooth pb-2 snap-x snap-mandatory
                          [-ms-overflow-style:none] [scrollbar-width:none]
                          [&::-webkit-scrollbar]:hidden">
               {categories.map((c) => (
@@ -180,17 +222,17 @@ export function CollectionStrip() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
 
                         <div className="absolute top-4 left-4 rounded-full bg-white/15 text-white text-xs px-3 py-1.5 backdrop-blur border border-white/10">
-                          {c.count} items
+                          {c.count} {t.items}
                         </div>
 
                         <div className="absolute bottom-0 left-0 right-0 p-5">
-                          <h3 className="text-2xl  font-semibold text-white truncate">{c.label}</h3>
+                          <h3 className="text-2xl font-semibold text-white truncate">{c.label}</h3>
 
                           <div className="mt-2 flex items-center justify-between">
-                            <p className="text-xs text-white/80">View collection</p>
+                            <p className="text-xs text-white/80">{t.viewCollection}</p>
 
                             <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-zinc-950 shadow-sm transition group-hover:bg-white/90">
-                              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                              <ArrowForward className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                             </span>
                           </div>
                         </div>
@@ -207,15 +249,15 @@ export function CollectionStrip() {
                 type="button"
                 onClick={() => scrollByCard(-1)}
                 className="h-10 w-10 rounded-2xl border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 transition"
-                aria-label="Previous">
-                <ArrowLeft className="mx-auto h-4 w-4" />
+                aria-label={t.prev}>
+                <ArrowBack className="mx-auto h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={() => scrollByCard(1)}
                 className="h-10 w-10 rounded-2xl border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 transition"
-                aria-label="Next">
-                <ArrowRight className="mx-auto h-4 w-4" />
+                aria-label={t.next}>
+                <ArrowForward className="mx-auto h-4 w-4" />
               </button>
             </div>
 
@@ -237,10 +279,9 @@ export function CollectionStrip() {
             )}
           </div>
 
-          {/* Dark CTA (same one you use in FeaturedProducts) */}
+          {/* Dark CTA */}
           <div className="mt-10 lg:mt-14">
             <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
-              {/* subtle glow + grid texture */}
               <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-28 -left-28 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
@@ -252,33 +293,31 @@ export function CollectionStrip() {
                 <div className="max-w-xl">
                   <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-wide text-white/70">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    Discover what’s next
+                    {t.ctaTop}
                   </p>
 
                   <h3 className="mt-2 text-2xl sm:text-3xl font-black text-white leading-tight">
-                    Find your next favorite look
+                    {t.ctaTitle}
                   </h3>
 
                   <p className="mt-2 text-sm sm:text-base text-white/70 leading-relaxed">
-                    Explore the full shop with new arrivals, best sellers, and curated categories.
+                    {t.ctaDesc}
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Link
                     to="/all-products?sort=new"
-                    className="group inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur
-                     hover:bg-white/15 transition active:scale-[0.99]">
-                    New arrivals
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    className="group inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur hover:bg-white/15 transition active:scale-[0.99]">
+                    {t.newArrivals}
+                    <ArrowForward className={language === "ar" ? "mr-2 h-4 w-4" : "ml-2 h-4 w-4"} />
                   </Link>
 
                   <Link
                     to="/all-products"
-                    className="group inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-zinc-950 shadow-sm
-                     hover:bg-white/90 transition active:scale-[0.99]">
-                    Shop all
-                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    className="group inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3 text-sm font-black text-zinc-950 shadow-sm hover:bg-white/90 transition active:scale-[0.99]">
+                    {t.shopAll}
+                    <ArrowForward className={language === "ar" ? "mr-2 h-4 w-4" : "ml-2 h-4 w-4"} />
                   </Link>
                 </div>
               </div>
