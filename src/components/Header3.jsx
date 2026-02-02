@@ -31,6 +31,7 @@ export default function Header({ onSearch }) {
           menu: "القائمة",
           switchTo: "English",
           logo: "WebSchema",
+          language: "اللغة",
         }
       : {
           home: "Home",
@@ -47,6 +48,7 @@ export default function Header({ onSearch }) {
           menu: "Menu",
           switchTo: "العربية",
           logo: "WebSchema",
+          language: "Language",
         };
   }, [language]);
 
@@ -381,19 +383,8 @@ export default function Header({ onSearch }) {
               )}
             </Link>
 
-            {/* ✅ Mobile lang toggle */}
-            <button
-              type="button"
-              onClick={() => dispatch(toggleLang())}
-              className={clsx(
-                "inline-flex h-10 items-center justify-center gap-2 rounded-2xl border px-3 transition",
-                pathname === "/" && !isScrolled
-                  ? "border-white/20 bg-white/10 text-white"
-                  : "border-neutral-200 bg-white text-neutral-900",
-              )}>
-              <Globe className="h-4 w-4" />
-              <span className="text-sm font-medium">{t.switchTo}</span>
-            </button>
+            {/* ✅ REMOVED: Mobile lang toggle button (now inside menu) */}
+            {/* <button ... /> */}
 
             <button
               type="button"
@@ -455,6 +446,18 @@ export default function Header({ onSearch }) {
                 </div>
 
                 <div className="px-5 py-5 space-y-4">
+                  {/* ✅ Language button INSIDE menu */}
+                  <button
+                    type="button"
+                    onClick={() => dispatch(toggleLang())}
+                    className="w-full inline-flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
+                    <span className="inline-flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      {t.language}
+                    </span>
+                    <span className="text-white/80">{t.switchTo}</span>
+                  </button>
+
                   <Link
                     to="/"
                     onClick={() => setClicked(false)}
