@@ -20,6 +20,7 @@ import { HeroSection } from "../../components/HeroSection";
 import X from "../../components/X";
 import Y from "../../components/Y";
 import Z from "../../components/Z";
+import Q from "../../components/Q";
 
 import HeroSection2 from "../../components/HeroSection2";
 import HeroSection3 from "../../components/HeroSection3";
@@ -54,6 +55,7 @@ function Home() {
       <FeaturedProducts products={products} isLoading={isLoading} />
       <CollectionStrip />
       {/* <MaterialsSection /> */}
+      {/* <Q /> */}
       <X />
       <Y />
       <Z />

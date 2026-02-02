@@ -4,8 +4,13 @@ import Layout from "../../Layout";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import clsx from "clsx";
-import { useGetProductByIdQuery } from "../../redux/queries/productApi";
+import {
+  useGetProductByIdQuery,
+  useGetProductsByCategoryQuery,
+  useGetCategoriesTreeQuery,
+} from "../../redux/queries/productApi";
 import Loader from "../../components/Loader";
+import ProductCard from "../../components/Product"; // ✅ alias (avoid component name conflict)
 import { Check, Minus, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Reveal from "../../components/Reveal";
@@ -61,7 +66,7 @@ function AddedAnimation() {
   );
 }
 
-/** ✅ Simple error hint (optional, lightweight) */
+/** ✅ Simple error hint */
 function InlineHint({ show, text }) {
   return (
     <AnimatePresence>
@@ -82,7 +87,9 @@ function InlineHint({ show, text }) {
 function Product() {
   const dispatch = useDispatch();
   const { productId } = useParams();
+
   const { data: product, isLoading, refetch } = useGetProductByIdQuery(productId);
+  const { data: categoryTree } = useGetCategoriesTreeQuery();
 
   const cartItems = useSelector((state) => state.cart.cartItems);
 
@@ -91,9 +98,37 @@ function Product() {
   const [activeVariant, setActiveVariant] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
 
-  // ✅ UI feedback instead of toast
   const [uiError, setUiError] = useState("");
   const [addedPulse, setAddedPulse] = useState(false);
+
+  // ✅ Robust categoryId extraction (string OR populated object)
+  const categoryId = useMemo(() => {
+    if (!product?.category) return "";
+    if (typeof product.category === "string") return String(product.category);
+    return product.category?._id ? String(product.category._id) : "";
+  }, [product]);
+
+  // ✅ Same-category products
+  const { data: sameCategoryProducts, isLoading: loadingRelated } = useGetProductsByCategoryQuery(
+    categoryId,
+    { skip: !categoryId },
+  );
+
+  const relatedProducts = useMemo(() => {
+    const list = Array.isArray(sameCategoryProducts) ? sameCategoryProducts : [];
+    return list
+      .filter((p) => String(p?._id) !== String(product?._id))
+      .filter((p) => {
+        const pCat =
+          typeof p?.category === "string"
+            ? String(p.category)
+            : p?.category?._id
+              ? String(p.category._id)
+              : "";
+        return String(pCat) === String(categoryId);
+      })
+      .slice(0, 10);
+  }, [sameCategoryProducts, product?._id, categoryId]);
 
   useEffect(() => {
     if (!product) return;
@@ -199,72 +234,94 @@ function Product() {
             <div className="grid gap-8 lg:gap-12 lg:grid-cols-2">
               {/* LEFT: Gallery */}
               <div className="lg:sticky lg:top-[110px] h-fit">
-                <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
-                  {/* Main image */}
-                  <div className="relative aspect-[4/5] sm:aspect-[16/15] lg:aspect-[4/5] bg-neutral-100">
-                    <AnimatePresence mode="wait">
-                      <motion.img
-                        key={activeImage}
-                        src={activeImage}
-                        alt={product?.name}
-                        loading="lazy"
-                        initial={{ opacity: 0, scale: 1.03 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ duration: 0.35, ease: [0.21, 0.47, 0.32, 0.98] }}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        draggable="false"
-                      />
-                    </AnimatePresence>
-
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/8 via-transparent to-transparent" />
-
-                    <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-3">
-                      {stock > 0 && stock < 5 ? (
-                        <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
-                          Only {stock} left
-                        </span>
-                      ) : stock === 0 ? (
-                        <span className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-700">
-                          Out of stock
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-700">
-                          In stock
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Thumbnails */}
+                <div className="relative overflow-hidden rounded-3xl  bg-white shadow-sm">
+                  {/* ✅ On big screens: thumbs LEFT. On small: thumbs BELOW */}
                   <div className="p-4">
-                    <div className="flex flex-wrap gap-3">
-                      {allImages.map((img, idx) => {
-                        const url = img?.url || img;
-                        const isActive = url === activeImage;
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => setActiveImage(url)}
-                            className={clsx(
-                              "relative h-20 w-20 overflow-hidden rounded-2xl border transition",
-                              isActive
-                                ? "border-neutral-900 ring-1 ring-neutral-900"
-                                : "border-neutral-200 hover:border-neutral-300",
-                            )}>
-                            <img
-                              src={url}
-                              alt={`Thumbnail ${idx + 1}`}
-                              className="h-full w-full object-cover"
-                              draggable="false"
-                            />
-                            {isActive && (
-                              <div className="absolute inset-0 bg-black/10" aria-hidden="true" />
-                            )}
-                          </button>
-                        );
-                      })}
+                    <div className="flex flex-col lg:flex-row gap-1">
+                      {/* Thumbnails (LEFT on lg) */}
+                      <div
+                        className={clsx(
+                          "order-2 lg:order-1",
+                          "flex flex-wrap lg:flex-col gap-3",
+                          "lg:w-24",
+                        )}>
+                        {/* Mobile: wraps; Desktop: vertical scroll */}
+                        <div className="flex flex-wrap lg:flex-col gap-3 lg:max-h-[520px] lg:overflow-auto lg:pr-1">
+                          {allImages.map((img, idx) => {
+                            const url = img?.url || img;
+                            const isActive = url === activeImage;
+
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setActiveImage(url)}
+                                className={clsx(
+                                  "relative overflow-hidden rounded-2xl border transition",
+                                  // size: slightly smaller on desktop
+                                  "h-20 w-20 lg:h-20 lg:w-20",
+                                  isActive
+                                    ? "border-neutral-900 ring-1 ring-neutral-900"
+                                    : "border-neutral-200 hover:border-neutral-300",
+                                )}>
+                                <img
+                                  src={url}
+                                  alt={`Thumbnail ${idx + 1}`}
+                                  className="h-full w-full object-cover"
+                                  draggable="false"
+                                />
+                                {isActive && (
+                                  <div
+                                    className="absolute inset-0 bg-black/10"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Main image */}
+                      <div className="order-1 lg:order-2 flex-1">
+                        <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white">
+                          <div className="relative aspect-[4/5] sm:aspect-[16/15] lg:aspect-[4/5] bg-neutral-100">
+                            <AnimatePresence mode="wait">
+                              <motion.img
+                                key={activeImage}
+                                src={activeImage}
+                                alt={product?.name}
+                                loading="lazy"
+                                initial={{ opacity: 0, scale: 1.03 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.35, ease: [0.21, 0.47, 0.32, 0.98] }}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                draggable="false"
+                              />
+                            </AnimatePresence>
+
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/8 via-transparent to-transparent" />
+
+                            <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-3">
+                              {stock > 0 && stock < 5 ? (
+                                <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
+                                  Only {stock} left
+                                </span>
+                              ) : stock === 0 ? (
+                                <span className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-700">
+                                  Out of stock
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-700">
+                                  In stock
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* End main */}
                     </div>
                   </div>
                 </div>
@@ -452,7 +509,6 @@ function Product() {
                             ? "bg-emerald-600 text-white"
                             : "bg-neutral-950 text-white hover:bg-neutral-900 active:scale-[0.99]",
                       )}>
-                      {/* Default label */}
                       <span
                         className={clsx(
                           "transition-opacity",
@@ -461,17 +517,52 @@ function Product() {
                         {stock === 0 ? "Out of stock" : "ADD TO CART"}
                       </span>
 
-                      {/* ✅ Animated SVG success */}
                       <AnimatePresence>{addedPulse && <AddedAnimation />}</AnimatePresence>
                     </button>
 
-                    {/* ✅ Inline error (instead of toast) */}
                     <InlineHint show={!!uiError} text={uiError} />
                   </div>
                 </div>
               </div>
               {/* END right */}
             </div>
+
+            {/* ✅ RELATED PRODUCTS - SAME CATEGORY ONLY */}
+            {categoryId ? (
+              <div className="mt-10 lg:mt-14">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-neutral-950">
+                      Related products
+                    </h3>
+                    <p className="mt-1 text-sm text-neutral-600">More items in the same category</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-3xl border border-neutral-200 bg-white/80 backdrop-blur shadow-sm p-4 sm:p-6">
+                  {loadingRelated ? (
+                    <Loader />
+                  ) : relatedProducts.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
+                      {relatedProducts.map((p) => (
+                        <div key={p._id} className="rounded-3xl">
+                          <ProductCard product={p} categoryTree={categoryTree || []} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center">
+                      <p className="text-sm font-medium text-neutral-800">
+                        No related products found.
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Nothing else in this category yet.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       )}

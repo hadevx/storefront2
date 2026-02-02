@@ -162,7 +162,7 @@ export default function Header({ onSearch }) {
     <>
       <motion.header
         className={clsx(
-          "fixed top-0 left-0 right-0 z-50 px-5 py-2 sm:py-0",
+          "fixed top-0 left-0 right-0 z-50 px-2 md:px-0 py-2 sm:py-0",
           "transition-all duration-300",
           // ✅ keep header black while menu is open (full screen)
           isMenuOpen

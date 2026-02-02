@@ -165,7 +165,7 @@ export default function About() {
           </section>
 
           <div className="mt-10 text-center text-sm text-neutral-500">
-            Thanks for choosing IPSUM Store — we’re happy you’re here.
+            Thanks for choosing WEBSCHEMA Store — we’re happy you’re here.
           </div>
         </div>
       </div>

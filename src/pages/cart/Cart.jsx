@@ -149,7 +149,7 @@ function Cart() {
                               className="h-20 w-20 rounded-2xl border bg-neutral-50 object-cover"
                             />
                             <div className="min-w-0">
-                              <div className="truncate text-sm font-semibold text-neutral-900">
+                              <div className="truncate w-32 text-sm font-semibold text-neutral-900">
                                 {item.name}
                               </div>
                               {item.hasDiscount && (
@@ -210,7 +210,7 @@ function Cart() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2">
                               <Link to={`/products/${item._id}`} className="min-w-0">
-                                <div className="truncate text-sm font-semibold text-neutral-900">
+                                <div className="truncate text-sm w-48 font-semibold text-neutral-900">
                                   {item.name}
                                 </div>
                                 <div className="mt-1 text-xs text-neutral-500">

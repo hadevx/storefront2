@@ -7,18 +7,35 @@ export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
+  // ✅ Your contact info
+  const SUPPORT_EMAIL = "webschema@outlook.com";
+  const SUPPORT_PHONE_RAW = "98909936"; // for WhatsApp link (no +)
+  const SUPPORT_PHONE_DISPLAY = "98909936";
+  const DEFAULT_LOCATION = "Kuwait City, Kuwait";
+
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  // ✅ On submit, redirect to WhatsApp with prefilled message
+  const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitting(true);
 
-    // demo submit
+    const text =
+      `Hello, I need help.\n\n` +
+      `Name: ${formData.name}\n` +
+      `Email: ${formData.email}\n\n` +
+      `Message:\n${formData.message}`;
+
+    const waUrl = `https://wa.me/${SUPPORT_PHONE_RAW}?text=${encodeURIComponent(text)}`;
+
+    // Optional: open in new tab
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+
+    // reset UI (you can keep data if you want)
     setTimeout(() => {
-      alert("Message sent! (Demo)");
       setFormData({ name: "", email: "", message: "" });
       setSubmitting(false);
-    }, 600);
+    }, 300);
   };
 
   return (
@@ -44,8 +61,8 @@ export default function Contact() {
               Contact us
             </h1>
             <p className="mt-4 text-neutral-600 leading-relaxed">
-              Questions about sizing, orders, or availability? Send us a message and we’ll get back
-              to you as soon as possible.
+              Questions about sizing, orders, or availability? Send us a message and we’ll redirect
+              you to WhatsApp to chat with us.
             </p>
           </div>
 
@@ -57,9 +74,13 @@ export default function Contact() {
                   <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50">
                     <Mail className="h-5 w-5 text-neutral-900" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-sm font-semibold text-neutral-950">Email</div>
-                    <div className="mt-1 text-sm text-neutral-600">support@ipsumstore.com</div>
+                    <a
+                      href={`mailto:${SUPPORT_EMAIL}`}
+                      className="mt-1 block text-sm text-neutral-600 hover:text-neutral-950 transition truncate">
+                      {SUPPORT_EMAIL}
+                    </a>
                   </div>
                 </div>
 
@@ -67,9 +88,15 @@ export default function Contact() {
                   <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50">
                     <Phone className="h-5 w-5 text-neutral-900" />
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold text-neutral-950">Phone</div>
-                    <div className="mt-1 text-sm text-neutral-600">+965 1234 5678</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-neutral-950">Phone / WhatsApp</div>
+                    <a
+                      href={`https://wa.me/${SUPPORT_PHONE_RAW}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 block text-sm text-neutral-600 hover:text-neutral-950 transition">
+                      {SUPPORT_PHONE_DISPLAY}
+                    </a>
                   </div>
                 </div>
 
@@ -79,7 +106,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-neutral-950">Location</div>
-                    <div className="mt-1 text-sm text-neutral-600">Kuwait City, Kuwait</div>
+                    <div className="mt-1 text-sm text-neutral-600">{DEFAULT_LOCATION}</div>
                   </div>
                 </div>
 
@@ -109,7 +136,7 @@ export default function Contact() {
               <div className="rounded-3xl border border-neutral-200 bg-white/80 backdrop-blur p-6 sm:p-8 shadow-sm">
                 <h2 className="text-lg font-semibold text-neutral-950">Send a message</h2>
                 <p className="mt-1 text-sm text-neutral-600">
-                  We usually respond within 24 hours on business days.
+                  When you submit, we’ll open WhatsApp with your message ready to send.
                 </p>
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -163,7 +190,7 @@ export default function Contact() {
                         : "bg-neutral-950 text-white hover:bg-neutral-900 active:scale-[0.99]",
                     )}>
                     <Send className="h-4 w-4" />
-                    {submitting ? "Sending..." : "Send message"}
+                    {submitting ? "Opening WhatsApp..." : "Send on WhatsApp"}
                   </button>
 
                   <div className="text-xs text-neutral-500 text-center">
