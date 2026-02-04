@@ -22,12 +22,12 @@ function ProductByCategory() {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showFilters, setShowFilters] = useState(false);
 
-  // filters/sort (match AllProducts)
+  // filters/sort
   const [sort, setSort] = useState("newest");
   const [onlyDiscount, setOnlyDiscount] = useState(false);
   const [onlyInStock, setOnlyInStock] = useState(false);
 
-  // ✅ debounce search (only updates term when draft changes)
+  // ✅ debounce search
   useEffect(() => {
     if (searchDraft === searchTerm) return;
     const t = setTimeout(() => setSearchTerm(searchDraft), 300);
@@ -72,13 +72,14 @@ function ProductByCategory() {
     return null;
   };
 
-  const flattenCategories = (nodes, prefix = "") => {
+  // keep both "flat list" and a light "depth" value so we can style chips
+  const flattenCategoriesWithDepth = (nodes, prefix = "", depth = 0) => {
     if (!Array.isArray(nodes)) return [];
     return nodes.flatMap((node) => {
       const displayName = prefix ? `${prefix} > ${node.name}` : node.name;
       return [
-        { id: node._id, name: node.name, displayName },
-        ...flattenCategories(node.children || [], displayName),
+        { id: node._id, name: node.name, displayName, depth },
+        ...flattenCategoriesWithDepth(node.children || [], displayName, depth + 1),
       ];
     });
   };
@@ -94,7 +95,7 @@ function ProductByCategory() {
   );
 
   const allSubCategories = useMemo(
-    () => (categoryNode ? flattenCategories(categoryNode.children || []) : []),
+    () => (categoryNode ? flattenCategoriesWithDepth(categoryNode.children || []) : []),
     [categoryNode],
   );
 
@@ -176,6 +177,12 @@ function ProductByCategory() {
     setSort("newest");
   };
 
+  const selectedSubLabel = useMemo(() => {
+    if (selectedSubCategory === "all") return "All";
+    const hit = allSubCategories.find((s) => String(s.id) === String(selectedSubCategory));
+    return hit?.displayName || "Subcategory";
+  }, [selectedSubCategory, allSubCategories]);
+
   /* ---------------------------------- RENDER ---------------------------------- */
   return (
     <Layout>
@@ -206,7 +213,7 @@ function ProductByCategory() {
         </nav>
 
         {/* Top Toolbar (CTA style) */}
-        <div className="-mx-2 px-2 sm:-mx-0 mb-6">
+        <div className="-mx-2 px-2 sm:-mx-0 mb-4">
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
             {/* subtle glow + grid texture */}
             <div className="pointer-events-none absolute inset-0">
@@ -321,7 +328,82 @@ function ProductByCategory() {
                 </div>
               </div>
 
-              {/* Row 3: Active chips (same as AllProducts but extended) */}
+              {/* NEW: Subcategory chips row (rounded boxes) */}
+              {allSubCategories.length > 0 && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold tracking-wide text-white/60 uppercase">
+                      Subcategories
+                    </p>
+
+                    {selectedSubCategory !== "all" && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSubCategory("all")}
+                        className="text-xs font-semibold text-white/70 hover:text-white transition">
+                        Reset to All
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {/* All chip */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubCategory("all")}
+                      className={clsx(
+                        "h-10 px-3 rounded-2xl border text-sm font-semibold transition active:scale-[0.99]",
+                        selectedSubCategory === "all"
+                          ? "border-white/30 bg-white text-zinc-950"
+                          : "border-white/15 bg-white/10 text-white hover:bg-white/15",
+                      )}>
+                      All
+                    </button>
+
+                    {allSubCategories.map((sub) => {
+                      const active = String(selectedSubCategory) === String(sub.id);
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => setSelectedSubCategory(sub.id)}
+                          title={sub.displayName}
+                          className={clsx(
+                            "h-10 px-3 rounded-2xl border text-sm font-semibold transition active:scale-[0.99]",
+                            "backdrop-blur",
+                            active
+                              ? "border-white/30 bg-white text-zinc-950"
+                              : "border-white/15 bg-white/10 text-white hover:bg-white/15",
+                          )}>
+                          {/* Show compact text but still informative */}
+                          <span className="inline-flex items-center gap-2">
+                            {/* depth dot for hierarchy hint */}
+                            <span
+                              className={clsx(
+                                "h-1.5 w-1.5 rounded-full",
+                                sub.depth === 0
+                                  ? "bg-emerald-400"
+                                  : sub.depth === 1
+                                    ? "bg-sky-400"
+                                    : "bg-purple-400",
+                              )}
+                            />
+                            <span className="max-w-[220px] truncate">{sub.name}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Optional: small helper text showing current selection */}
+                  <p className="mt-2 text-xs text-white/55">
+                    Selected:{" "}
+                    <span className="text-white/80 font-semibold">{selectedSubLabel}</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Row 3: Active chips (kept) */}
               {(searchTerm ||
                 onlyDiscount ||
                 onlyInStock ||
@@ -433,7 +515,7 @@ function ProductByCategory() {
           </div>
         )}
 
-        {/* Slide-over Filters (same pattern as AllProducts, but with extra controls) */}
+        {/* Slide-over Filters (subcategory removed from drawer) */}
         {showFilters && (
           <div className="fixed inset-0 z-50">
             <div className="absolute inset-0 bg-black/40" onClick={() => setShowFilters(false)} />
@@ -513,43 +595,7 @@ function ProductByCategory() {
                     </div>
                   </div>
 
-                  {/* Subcategories */}
-                  {allSubCategories.length > 0 && (
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 mb-2">Subcategory</p>
-                      <div className="grid gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedSubCategory("all")}
-                          className={clsx(
-                            "w-full text-left rounded-2xl px-3 py-2 text-sm border transition",
-                            selectedSubCategory === "all"
-                              ? "border-neutral-900 bg-neutral-900 text-white"
-                              : "border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50",
-                          )}>
-                          All
-                        </button>
-
-                        <div className="max-h-[320px] overflow-auto pr-1 grid gap-2">
-                          {allSubCategories.map((sub) => (
-                            <button
-                              key={sub.id}
-                              type="button"
-                              onClick={() => setSelectedSubCategory(sub.id)}
-                              title={sub.displayName}
-                              className={clsx(
-                                "w-full text-left rounded-2xl px-3 py-2 text-sm border transition",
-                                selectedSubCategory === sub.id
-                                  ? "border-neutral-900 bg-neutral-900 text-white"
-                                  : "border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50",
-                              )}>
-                              {sub.displayName}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* NOTE: subcategory section removed from drawer */}
                 </div>
 
                 {/* Footer */}

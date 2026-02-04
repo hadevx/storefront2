@@ -161,7 +161,7 @@ function Cart() {
           {/* LEFT: Items */}
           <div className="space-y-4 min-w-0">
             {cartItems?.length === 0 ? (
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-[0_18px_60px_rgba(0,0,0,0.06)]">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-6 ">
                 <Message dismiss={false}>{t.empty}</Message>
                 <div className="mx-auto mt-4 w-full max-w-[360px]">
                   <Lottie animationData={empty} loop={true} />

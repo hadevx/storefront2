@@ -231,7 +231,7 @@ function Product() {
           </div>
 
           <div className="lg:container mt-[70px] lg:mt-[110px] lg:mx-auto px-3 pb-14">
-            <div className="grid gap-8 lg:gap-12 lg:grid-cols-2">
+            <div className="grid gap-5 lg:gap-5 lg:grid-cols-2">
               {/* LEFT: Gallery */}
               <div className="lg:sticky lg:top-[110px] h-fit">
                 <div className="relative overflow-hidden rounded-3xl  bg-white shadow-sm">

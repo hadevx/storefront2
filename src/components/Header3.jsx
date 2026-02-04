@@ -1,4 +1,12 @@
-import { ShoppingCart, Menu, X, User as UserIconSvg, ChevronDown, Globe } from "lucide-react";
+import {
+  ShoppingCart,
+  Menu,
+  X,
+  User as UserIconSvg,
+  ChevronDown,
+  Globe,
+  Check,
+} from "lucide-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,7 +14,19 @@ import { useSelector, useDispatch } from "react-redux";
 import clsx from "clsx";
 import { useGetCategoriesTreeQuery, useGetProductsQuery } from "../redux/queries/productApi";
 import { useGetStoreStatusQuery } from "../redux/queries/maintenanceApi";
-import { toggleLang } from "../redux/slices/languageSlice";
+import { setLang, toggleLang } from "../redux/slices/languageSlice";
+
+/**
+ * NOTE:
+ * - This version turns the language button into a dropdown:
+ *   Shows "AR" or "EN", click -> dropdown menu, select language.
+ * - It works both on Desktop and inside the Mobile full-screen menu.
+ *
+ * REQUIREMENT:
+ * Your languageSlice should export `setLang("ar"|"en")`.
+ * If you don't have it yet, add it (recommended). If not possible,
+ * you can replace setLang(...) with toggleLang() and keep only two items.
+ */
 
 export default function Header({ onSearch }) {
   const dispatch = useDispatch();
@@ -29,9 +49,11 @@ export default function Header({ onSearch }) {
           tip: "نصيحة: استخدم البحث للعثور على المنتجات بسرعة",
           viewAllProducts: "عرض كل المنتجات →",
           menu: "القائمة",
-          switchTo: "English",
           logo: "WebSchema",
           language: "اللغة",
+          chooseLang: "اختر اللغة",
+          ar: "العربية",
+          en: "English",
         }
       : {
           home: "Home",
@@ -46,9 +68,11 @@ export default function Header({ onSearch }) {
           tip: "Tip: Use search to find items fast",
           viewAllProducts: "View all products →",
           menu: "Menu",
-          switchTo: "العربية",
           logo: "WebSchema",
           language: "Language",
+          chooseLang: "Choose language",
+          ar: "Arabic",
+          en: "English",
         };
   }, [language]);
 
@@ -57,6 +81,10 @@ export default function Header({ onSearch }) {
   const [noProductFound, setNoProductFound] = useState(false);
   const [expandedCategoryId, setExpandedCategoryId] = useState(null);
   const [expandedMobileCat, setExpandedMobileCat] = useState(null);
+
+  // NEW: language dropdown state
+  const [langOpenDesktop, setLangOpenDesktop] = useState(false);
+  const [langOpenMobile, setLangOpenMobile] = useState(false);
 
   const { data: products = [] } = useGetProductsQuery();
   const { data: categoryTree } = useGetCategoriesTreeQuery();
@@ -71,14 +99,22 @@ export default function Header({ onSearch }) {
   const cartCount = useMemo(() => cartItems.reduce((a, c) => a + c.qty, 0), [cartItems]);
 
   const menuRef = useRef(null);
+  const langDesktopRef = useRef(null);
+  const langMobileRef = useRef(null);
 
-  // close on outside click
+  // close on outside click (menu + dropdowns)
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setClicked(false);
         setExpandedCategoryId(null);
         setExpandedMobileCat(null);
+      }
+      if (langDesktopRef.current && !langDesktopRef.current.contains(event.target)) {
+        setLangOpenDesktop(false);
+      }
+      if (langMobileRef.current && !langMobileRef.current.contains(event.target)) {
+        setLangOpenMobile(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -110,6 +146,7 @@ export default function Header({ onSearch }) {
         setClicked(false);
         setNoProductFound(false);
         setExpandedMobileCat(null);
+        setLangOpenMobile(false);
       } else {
         setNoProductFound(true);
       }
@@ -125,6 +162,8 @@ export default function Header({ onSearch }) {
   }, []);
 
   const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
+
+  const isMenuOpen = clicked;
 
   // Desktop mega menu rendering
   const renderCategoryTree = (categories) =>
@@ -176,6 +215,7 @@ export default function Header({ onSearch }) {
           onClick={() => {
             setClicked(false);
             setExpandedMobileCat(null);
+            setLangOpenMobile(false);
           }}
           className="block rounded-2xl px-4 py-3 text-sm font-semibold text-white/95 hover:bg-white/10">
           {cap(cat.name)}
@@ -190,6 +230,7 @@ export default function Header({ onSearch }) {
                 onClick={() => {
                   setClicked(false);
                   setExpandedMobileCat(null);
+                  setLangOpenMobile(false);
                 }}
                 className="block rounded-2xl px-4 py-2 text-sm text-white/80 hover:bg-white/10">
                 {cap(child.name)}
@@ -200,7 +241,37 @@ export default function Header({ onSearch }) {
       </div>
     ));
 
-  const isMenuOpen = clicked;
+  // ✅ language dropdown items
+  const langItems = useMemo(
+    () => [
+      { code: "en", label: t.en, short: "EN" },
+      { code: "ar", label: t.ar, short: "AR" },
+    ],
+    [t.en, t.ar],
+  );
+
+  const selectLanguage = (code) => {
+    // preferred: setLang
+    try {
+      dispatch(setLang(code));
+    } catch (e) {
+      // fallback
+      dispatch(toggleLang());
+    }
+    setLangOpenDesktop(false);
+    setLangOpenMobile(false);
+  };
+
+  const langBtnClassDesktop = clsx(
+    "inline-flex items-center gap-2 rounded-2xl border px-2 py-2 text-sm font-semibold transition",
+    pathname === "/" && !isScrolled
+      ? "border-white/20 bg-white/10 text-white hover:bg-white/15"
+      : "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50",
+  );
+
+  const langBtnClassMobile = clsx(
+    "w-full inline-flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10",
+  );
 
   return (
     <>
@@ -308,19 +379,77 @@ export default function Header({ onSearch }) {
 
           {/* Desktop right actions */}
           <div className="hidden md:flex items-center gap-3">
-            {/* ✅ Lang toggle */}
-            <button
-              type="button"
-              onClick={() => dispatch(toggleLang())}
-              className={clsx(
-                "inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition",
-                pathname === "/" && !isScrolled
-                  ? "border-white/20 bg-white/10 text-white hover:bg-white/15"
-                  : "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50",
-              )}>
-              <Globe className="h-4 w-4" />
-              <span>{t.switchTo}</span>
-            </button>
+            {/* ✅ Language dropdown (Desktop) */}
+            <div className="relative" ref={langDesktopRef}>
+              <button
+                type="button"
+                onClick={() => setLangOpenDesktop((v) => !v)}
+                className={langBtnClassDesktop}
+                aria-haspopup="menu"
+                aria-expanded={langOpenDesktop}>
+                <Globe className="h-4 w-4" />
+                <span className="tracking-wide">{language === "ar" ? "AR" : "EN"}</span>
+                <ChevronDown
+                  className={clsx(
+                    "h-4 w-4 transition-transform",
+                    langOpenDesktop ? "rotate-180" : "rotate-0",
+                  )}
+                />
+              </button>
+
+              <AnimatePresence>
+                {langOpenDesktop && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 10, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.16 }}
+                    className={clsx(
+                      "absolute top-full mt-2 w-56 rounded-2xl border shadow-xl overflow-hidden bg-white",
+                      language === "ar" ? "right-0" : "left-0",
+                    )}
+                    role="menu">
+                    <div className="px-4 py-3 border-b border-neutral-200">
+                      <p className="text-sm font-semibold text-neutral-900">{t.language}</p>
+                      <p className="text-xs text-neutral-500 mt-0.5">{t.chooseLang}</p>
+                    </div>
+
+                    <div className="p-2">
+                      {langItems.map((it) => {
+                        const active = language === it.code;
+                        return (
+                          <button
+                            key={it.code}
+                            type="button"
+                            onClick={() => selectLanguage(it.code)}
+                            className={clsx(
+                              "w-full flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition",
+                              active
+                                ? "bg-neutral-900 text-white"
+                                : "hover:bg-neutral-50 text-neutral-900",
+                            )}
+                            role="menuitem">
+                            <span className="inline-flex items-center gap-2">
+                              <span
+                                className={clsx(
+                                  "inline-flex h-7 w-7 items-center justify-center rounded-lg",
+                                  active ? "bg-white/10" : "bg-neutral-100",
+                                )}>
+                                <span className={clsx(active ? "text-white" : "text-neutral-900")}>
+                                  {it.short}
+                                </span>
+                              </span>
+                              <span>{it.label}</span>
+                            </span>
+                            {active ? <Check className="h-4 w-4" /> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {userInfo ? (
               <Link
@@ -383,9 +512,6 @@ export default function Header({ onSearch }) {
               )}
             </Link>
 
-            {/* ✅ REMOVED: Mobile lang toggle button (now inside menu) */}
-            {/* <button ... /> */}
-
             <button
               type="button"
               onClick={() => setClicked((p) => !p)}
@@ -428,6 +554,7 @@ export default function Header({ onSearch }) {
                     onClick={() => {
                       setClicked(false);
                       setExpandedMobileCat(null);
+                      setLangOpenMobile(false);
                     }}
                     className="font-semibold">
                     {t.logo}
@@ -438,6 +565,7 @@ export default function Header({ onSearch }) {
                     onClick={() => {
                       setClicked(false);
                       setExpandedMobileCat(null);
+                      setLangOpenMobile(false);
                     }}
                     className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 hover:bg-white/10"
                     aria-label="Close">
@@ -446,21 +574,85 @@ export default function Header({ onSearch }) {
                 </div>
 
                 <div className="px-5 py-5 space-y-4">
-                  {/* ✅ Language button INSIDE menu */}
-                  <button
-                    type="button"
-                    onClick={() => dispatch(toggleLang())}
-                    className="w-full inline-flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
-                    <span className="inline-flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
-                      {t.language}
-                    </span>
-                    <span className="text-white/80">{t.switchTo}</span>
-                  </button>
+                  {/* ✅ Language dropdown INSIDE mobile menu */}
+                  <div className="relative" ref={langMobileRef}>
+                    <button
+                      type="button"
+                      onClick={() => setLangOpenMobile((v) => !v)}
+                      className={langBtnClassMobile}
+                      aria-haspopup="menu"
+                      aria-expanded={langOpenMobile}>
+                      <span className="inline-flex items-center gap-2">
+                        <Globe className="h-4 w-4" />
+                        {t.language}
+                      </span>
+                      <span className="inline-flex items-center gap-2 text-white/85">
+                        <span className="tracking-wide">{language === "ar" ? "AR" : "EN"}</span>
+                        <ChevronDown
+                          size={18}
+                          className={clsx(
+                            "transition-transform",
+                            langOpenMobile ? "rotate-180" : "rotate-0",
+                          )}
+                        />
+                      </span>
+                    </button>
+
+                    <AnimatePresence>
+                      {langOpenMobile && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 10 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{ duration: 0.16 }}
+                          className="mt-2 rounded-2xl border border-white/10 bg-white/5 overflow-hidden"
+                          role="menu">
+                          <div className="p-2">
+                            {langItems.map((it) => {
+                              const active = language === it.code;
+                              return (
+                                <button
+                                  key={it.code}
+                                  type="button"
+                                  onClick={() => selectLanguage(it.code)}
+                                  className={clsx(
+                                    "w-full flex items-center justify-between rounded-xl px-3 py-2 text-sm font-semibold transition",
+                                    active
+                                      ? "bg-white text-neutral-900"
+                                      : "hover:bg-white/10 text-white",
+                                  )}
+                                  role="menuitem">
+                                  <span className="inline-flex items-center gap-2">
+                                    <span
+                                      className={clsx(
+                                        "inline-flex h-7 w-7 items-center justify-center rounded-lg",
+                                        active ? "bg-neutral-100" : "bg-white/10",
+                                      )}>
+                                      <span
+                                        className={clsx(
+                                          active ? "text-neutral-900" : "text-white",
+                                        )}>
+                                        {it.short}
+                                      </span>
+                                    </span>
+                                    <span>{it.label}</span>
+                                  </span>
+                                  {active ? <Check className="h-4 w-4 text-neutral-900" /> : null}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
                   <Link
                     to="/"
-                    onClick={() => setClicked(false)}
+                    onClick={() => {
+                      setClicked(false);
+                      setLangOpenMobile(false);
+                    }}
                     className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
                     {t.home}
                   </Link>
@@ -498,14 +690,20 @@ export default function Header({ onSearch }) {
 
                   <Link
                     to="/about"
-                    onClick={() => setClicked(false)}
+                    onClick={() => {
+                      setClicked(false);
+                      setLangOpenMobile(false);
+                    }}
                     className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
                     {t.about}
                   </Link>
 
                   <Link
                     to="/contact"
-                    onClick={() => setClicked(false)}
+                    onClick={() => {
+                      setClicked(false);
+                      setLangOpenMobile(false);
+                    }}
                     className="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold hover:bg-white/10">
                     {t.contact}
                   </Link>
@@ -513,7 +711,10 @@ export default function Header({ onSearch }) {
                   {userInfo ? (
                     <Link
                       to="/profile"
-                      onClick={() => setClicked(false)}
+                      onClick={() => {
+                        setClicked(false);
+                        setLangOpenMobile(false);
+                      }}
                       className="mt-2 inline-flex w-full items-center gap-2 rounded-2xl bg-white text-neutral-900 px-4 py-3 text-sm font-semibold hover:bg-white/90">
                       <UserIconSvg className="h-4 w-4" />
                       {t.myAccount}
@@ -521,7 +722,10 @@ export default function Header({ onSearch }) {
                   ) : (
                     <Link
                       to="/login"
-                      onClick={() => setClicked(false)}
+                      onClick={() => {
+                        setClicked(false);
+                        setLangOpenMobile(false);
+                      }}
                       className="mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-white text-neutral-900 px-4 py-3 text-sm font-semibold hover:bg-white/90">
                       {t.login}
                     </Link>
